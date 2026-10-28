@@ -18,9 +18,9 @@ const tabs: Tab[] = [
     id: 'ride',
     name: 'Прогулка',
     photo: 'field',
-    title: 'Час по лесу, полям и берегу реки',
-    text: 'Лёгкий электроэндуро, лесные дороги и, если захочется, трасса. Темп выбираете вы, инструктор подстраивается. Можно одному, можно вдвоём: два мотоцикла и инструктор рядом на третьем.',
-    params: [['Кто едет', 'один или двое, с инструктором'], ['Опыт', 'не нужен, права тоже'], ['Когда', 'круглый год, днём и ночью']],
+    title: 'Покатушки по лесу, полям и берегу реки',
+    text: 'Лёгкий электроэндуро и лесные дороги. Темп выбираете вы, инструктор подстраивается. Можно одному, можно вдвоём: два мотоцикла и инструктор рядом на третьем.',
+    params: [['Кто едет', 'один или двое, с инструктором'], ['Опыт', 'не нужен, права тоже'], ['Когда', 'круглый год']],
   },
   {
     id: 'quest',
@@ -34,9 +34,9 @@ const tabs: Tab[] = [
     id: 'gift',
     name: 'Сертификат',
     photo: 'hug',
-    title: 'Подарить поездку, а не вещь',
-    text: 'Сертификат на прогулку или квест. Бессрочный: дату получатель выберет сам, когда будет готов. Другу, парню, девушке, мужу, сыну или дочери, особенно тем, у кого «всё есть».',
-    params: [['На что', 'прогулка или квест'], ['Срок', 'бессрочный'], ['Дата', 'выбирает получатель']],
+    title: 'Подарить эмоции, а не вещь',
+    text: 'Сертификат на прогулку или квест действует полгода: дату получатель выберет сам, когда будет готов. Другу, парню, девушке, мужу, сыну или дочери, особенно тем, у кого «всё есть».',
+    params: [['На что', 'прогулка или квест'], ['Срок', '6 месяцев'], ['Дата', 'выбирает получатель']],
   },
 ];
 const START = 'quest';
@@ -73,18 +73,21 @@ const START = 'quest';
         hidden={t.id !== START}
         data-panel={t.id}
       >
-        <div class="vars__visor">
+        <div class="vars__visor" data-tilt-area={t.id === 'gift' ? '' : undefined}>
           <Pic id={t.photo} sizes="(max-width: 860px) 92vw, 54vw" early />
           {t.id === 'gift' && (
-            <div class="plate" aria-hidden="true">
+            <div class="plate" aria-hidden="true" data-tilt>
               <span class="plate__top"><Icon name="gift" size={16} /> Подарочный сертификат</span>
               <span class="plate__name">Эндуро электромотоциклы</span>
-              <span class="plate__meta"><span>Смоленск</span><span>Бессрочный</span></span>
+              <span class="plate__meta"><span>Смоленск</span><span>Действует 6 месяцев</span></span>
+              <span class="plate__glare"></span>
             </div>
           )}
         </div>
         <div class="vars__body">
-          <h3>{t.title}</h3>
+          {t.id === 'gift'
+            ? <h3>Подарить <span class="emo">эмоции</span>, а не вещь</h3>
+            : <h3>{t.title}</h3>}
           <p class="vars__text">{t.text}</p>
           <dl class="vars__params">
             {t.params.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
@@ -202,7 +205,16 @@ const START = 'quest';
 
   /* металлическая пластина сертификата: шлифовка и блик */
   .plate {
+    --rx: 0deg;
+    --ry: 0deg;
+    --gx: 30%;
+    --gy: 20%;
+    --glare: 0.35;
     position: absolute;
+    overflow: hidden;
+    transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry));
+    transform-style: preserve-3d;
+    transition: transform 0.5s var(--ease-out);
     right: 18px;
     bottom: 18px;
     width: min(46%, 320px);
@@ -213,7 +225,7 @@ const START = 'quest';
     border-radius: 10px;
     color: #23281f;
     background:
-      radial-gradient(120% 90% at 25% 15%, rgb(255 255 255 / 0.75), transparent 45%),
+      radial-gradient(120% 90% at var(--gx) var(--gy), rgb(255 255 255 / 0.75), transparent 45%),
       repeating-linear-gradient(90deg, rgb(255 255 255 / 0.07) 0 1px, rgb(0 0 0 / 0.05) 1px 2px, transparent 2px 4px),
       conic-gradient(from 210deg at 60% 50%, #9da29a, #e9ebe5, #8c918a, #d7dad2, #a3a89f, #f2f3ee, #9da29a);
     outline: 1px solid rgb(0 0 0 / 0.12);
@@ -222,6 +234,31 @@ const START = 'quest';
   .plate__top { display: flex; align-items: center; gap: 8px; font: 500 10px/1 var(--f-label); }
   .plate__name { align-self: center; font: 500 clamp(20px, 2vw, 28px)/1 var(--f-display); }
   .plate__meta { display: flex; justify-content: space-between; font: 500 10px/1 var(--f-label); opacity: 0.8; }
+  .plate.is-tilting { transition: transform 0.08s linear; }
+  /* блик: яркое пятно и радужная полоса, которые бегут по пластине вслед за наклоном */
+  .plate__glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: var(--glare);
+    background:
+      radial-gradient(circle at var(--gx) var(--gy), rgb(255 255 255 / 0.95), rgb(255 255 255 / 0) 42%),
+      linear-gradient(calc(110deg + var(--ry) * 4), transparent 30%, rgb(255 190 120 / 0.55) 44%, rgb(120 220 255 / 0.5) 52%, rgb(255 140 200 / 0.45) 60%, transparent 72%);
+    background-size: 100% 100%, 260% 100%;
+    background-position: 0 0, calc(50% + var(--ry) * 6) 0;
+  }
+
+  /* «эмоции» переливаются яркими цветами, но остаются тёмными настолько, чтобы читаться на светлом фоне */
+  .emo {
+    background: linear-gradient(100deg, #d9480f, #e8590c, #c2255c, #e67700, #2b8a3e, #d9480f) 0 0 / 300% 100%;
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+    animation: emo-flow 4s linear infinite;
+    font-style: italic;
+  }
+  @keyframes emo-flow { to { background-position: 300% 0; } }
 
   @media (max-width: 860px) {
     .vars__panel { grid-template-columns: 1fr; }
@@ -235,6 +272,8 @@ const START = 'quest';
   @media (prefers-reduced-motion: reduce) {
     .vars__visor { clip-path: none; }
     .vars__tab::after, .vars__tab::before { animation: none !important; }
+    .emo { animation: none; }
+    .plate { transition: none; }
   }
 </style>
 
@@ -271,6 +310,38 @@ const START = 'quest';
         select(tabs[(i + d + tabs.length) % tabs.length].dataset.tab!, true);
       });
     });
+
+    // 3D-наклон сертификата: пластина поворачивается к курсору, блик едет по ней
+    const area = root.querySelector<HTMLElement>('[data-tilt-area]');
+    const plate = root.querySelector<HTMLElement>('[data-tilt]');
+    if (area && plate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const tilt = (px: number, py: number) => {
+        plate.style.setProperty('--rx', `${(0.5 - py) * 22}deg`);
+        plate.style.setProperty('--ry', `${(px - 0.5) * 26}deg`);
+        plate.style.setProperty('--gx', `${px * 100}%`);
+        plate.style.setProperty('--gy', `${py * 100}%`);
+        plate.style.setProperty('--glare', String(0.35 + Math.hypot(px - 0.5, py - 0.5) * 1.1));
+      };
+      if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        area.addEventListener('pointermove', (e) => {
+          const b = plate.getBoundingClientRect();
+          const px = Math.min(1.2, Math.max(-0.2, (e.clientX - b.left) / b.width));
+          const py = Math.min(1.2, Math.max(-0.2, (e.clientY - b.top) / b.height));
+          plate.classList.add('is-tilting');
+          tilt(px, py);
+        });
+        area.addEventListener('pointerleave', () => { plate.classList.remove('is-tilting'); tilt(0.5, 0.5); plate.style.setProperty('--glare', '0.35'); });
+      } else {
+        // на телефоне пластина медленно покачивается сама
+        const t0 = performance.now();
+        const sway = (now: number) => {
+          const t = (now - t0) / 1000;
+          tilt(0.5 + Math.sin(t * 0.9) * 0.35, 0.5 + Math.cos(t * 0.7) * 0.25);
+          requestAnimationFrame(sway);
+        };
+        requestAnimationFrame(sway);
+      }
+    }
 
     // ссылки «Подарок» и т.п. в других блоках открывают нужную вкладку
     document.querySelectorAll<HTMLAnchorElement>('a[data-open-tab]').forEach((a) =>

@@ -1,4 +1,9 @@
 name: CI
+
+# только чтение: CI запускает тесты, ничего не публикует
+permissions:
+  contents: read
+
 on:
   pull_request:
   push:

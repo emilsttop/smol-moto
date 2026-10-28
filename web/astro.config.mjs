@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 
 // SITE_URL задаётся в CI; локально — заглушка для canonical и sitemap
 export default defineConfig({
-  site: process.env.SITE_URL ?? 'https://moto-smolensk.ru',
+  site: process.env.SITE_URL ?? 'https://smol-moto.ru',
   trailingSlash: 'never',
   build: { format: 'file', inlineStylesheets: 'auto' },
   vite: {

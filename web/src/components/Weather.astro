@@ -195,6 +195,17 @@ const label = (i: number) => pt(i * 90 + 45, (R + r) / 2).split(' ').map(Number)
     const bgs = [...root.querySelectorAll<HTMLElement>('[data-bg]')];
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let touched = false;
+
+    // при загрузке сразу показываем текущее время года, без анимации раскрытия
+    const month = new Date().getMonth();
+    const now = month <= 1 || month === 11 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
+    if (root.dataset.season !== now) {
+      root.dataset.season = now;
+      secs.forEach((s) => s.setAttribute('aria-pressed', String(s.dataset.sec === now)));
+      stories.forEach((s) => { s.hidden = s.dataset.story !== now; });
+      bgs.forEach((b) => b.classList.toggle('is-on', b.dataset.bg === now));
+    }
+    bgs.find((b) => b.dataset.bg === now)!.querySelector('img')!.loading = 'eager';
     let switches = 0;
 
     const pick = (id: string, from: Element) => {
@@ -319,6 +330,8 @@ const label = (i: number) => pt(i * 90 + 45, (R + r) / 2).split(' ').map(Number)
         const s = root.dataset.season;
         if ((s === 'winter' || s === 'autumn') && !raf) raf = requestAnimationFrame(draw);
       }).observe(root, { attributes: true, attributeFilter: ['data-season'] });
+      // если блок открылся сразу на зиме или осени, частицы запускаем без ожидания смены сезона
+      if (root.dataset.season === 'winter' || root.dataset.season === 'autumn') raf = requestAnimationFrame(draw);
     }
   }
 </script>

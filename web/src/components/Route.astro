@@ -1,13 +1,12 @@
 ---
 // Маршрут поездки, привязанный к прокрутке: трек прорисовывается, по нему едет огонёк фары,
 // остановки загораются по мере прохождения.
-import { site } from '../config';
 const stops = [
   { t: 'Заранее', h: 'Звонок', d: 'Подберём время и формат, назовём стоимость' },
-  { t: '0:00', h: 'Трансфер', d: `Заберём: ${site.pickup}` },
-  { t: '0:10', h: 'Площадка', d: 'Экипировка и обучение, 10–15 минут' },
-  { t: '0:25', h: 'Маршрут', d: 'Лес, поля, берег реки' },
-  { t: 'Вечером', h: 'Видео', d: 'Фото и ролик с поездки у вас в телефоне' },
+  { t: '0:00', h: 'Трансфер', d: 'Заберём из Ленинского района при необходимости' },
+  { t: '0:20', h: 'Площадка', d: 'Экипировка и обучение, 10–15 минут' },
+  { t: '0:35', h: 'Маршрут', d: 'Лес, поля, берег реки' },
+  { t: 'Вечером', h: 'Видео', d: 'Фото и видео с поездки у вас в телефоне' },
 ];
 const D = 'M0 52 C 90 20, 160 70, 250 44 S 410 18, 500 46 S 660 74, 750 40 S 910 24, 1000 50';
 ---
@@ -26,13 +25,18 @@ const D = 'M0 52 C 90 20, 160 70, 250 44 S 410 18, 500 46 S 660 74, 750 40 S 910
       {stops.map((_, i) => <span class="route__pin" data-route-pin={i}></span>)}
       <span class="route__rider" data-route-rider></span>
     </div>
+    <!-- граница оплаченного времени: прокат начинается с площадки -->
+    <div class="route__start"><span>Начало проката</span></div>
     <ol class="route__stops">
-      {stops.map((s) => (
-        <li data-route-stop>
+      {stops.map((s, i) => (
+        <>
+        {i === 2 && <li class="route__startrow"><span>Начало проката</span></li>}
+        <li data-route-stop class:list={{ 'is-paid': i >= 2 && i <= 3 }}>
           <span class="route__time">{s.t}</span>
           <h3>{s.h}</h3>
           <p>{s.d}</p>
         </li>
+        </>
       ))}
     </ol>
   </div>
@@ -85,6 +89,32 @@ const D = 'M0 52 C 90 20, 160 70, 250 44 S 410 18, 500 46 S 660 74, 750 40 S 910
   .route__stops li { padding-top: 16px; opacity: 0.42; transition: opacity 0.5s; }
   .route__stops li.is-on { opacity: 1; }
   .route__time { font: 500 13px/1 var(--f-label); color: var(--forest-2); }
+  .route__track { position: relative; }
+  /* вертикальная граница между трансфером и площадкой: левее неё время не оплачивается */
+  .route__start {
+    position: absolute;
+    top: -34px;
+    bottom: 0;
+    left: calc(40% - 2px);
+    border-left: 2px dashed var(--accent);
+    pointer-events: none;
+  }
+  .route__start span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    translate: -50% -50%;
+    white-space: nowrap;
+    padding: 7px 12px 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--ink);
+    font: 500 11px/1 var(--f-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .route__startrow { display: none; }
+  .route__stops li.is-paid .route__time { color: #b35c00; }
   .route__stops h3 { font-size: 32px; margin: 14px 0 10px; }
   .route__stops p { font-size: 14.5px; color: var(--ink-soft); }
 
@@ -105,6 +135,14 @@ const D = 'M0 52 C 90 20, 160 70, 250 44 S 410 18, 500 46 S 660 74, 750 40 S 910
       background: var(--paper); border: 1.5px solid var(--ink); z-index: 1; transition: background-color 0.3s;
     }
     .route__stops li.is-on::before { background: var(--accent); border-color: var(--forest); }
+    .route__start { display: none; }
+    .route__stops li.route__startrow { display: block; padding: 0 0 28px; opacity: 1; }
+    .route__stops li.route__startrow::before { display: none; }
+    .route__startrow span {
+      display: block; margin-left: -30px; padding: 8px 0 8px 12px;
+      border-top: 2px dashed var(--accent);
+      font: 500 11px/1 var(--f-label); letter-spacing: 0.06em; text-transform: uppercase; color: #b35c00;
+    }
     .route__stops h3 { margin: 8px 0 6px; font-size: 28px; }
   }
   @media (prefers-reduced-motion: reduce) {

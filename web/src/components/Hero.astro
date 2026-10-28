@@ -226,10 +226,9 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         ctx.translate(m.x + nx * HALF * 0.45 * m.side, m.y + ny * HALF * 0.45 * m.side);
         // ёлочка протектора: зацепы наклонены в разные стороны по очереди
         ctx.rotate(m.a + Math.PI / 2 + m.side * 0.42 + m.skid);
-        ctx.fillStyle = `rgba(18, 12, 6, ${0.62 * life})`;
+        // белый след: чуть прозрачный, чтобы фото проступало сквозь грунтозацепы
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.78 * life})`;
         ctx.fillRect(-6.5, -2.4, 13, 4.8);
-        ctx.fillStyle = `rgba(255, 214, 160, ${0.16 * life})`;
-        ctx.fillRect(-6.5, -2.4, 13, 1.2);
         ctx.restore();
       }
       for (let i = clods.length - 1; i >= 0; i--) {
@@ -237,7 +236,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         const age = now - c.t;
         if (age > 900) { clods.splice(i, 1); continue; }
         c.vy += 0.18; c.x += c.vx; c.y += c.vy;
-        ctx.fillStyle = `rgba(40, 26, 12, ${0.8 * (1 - age / 900)})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - age / 900)})`;
         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
       }
       raf = visible ? requestAnimationFrame(draw) : 0;

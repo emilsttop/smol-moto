@@ -94,7 +94,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
   }
   .hero__logo :global(.logo__mark) { display: none; }
   .hero__logo { position: relative; }
-  /* название из частиц: canvas шире плашки, чтобы частицы могли разлетаться за её край */
+  /* название «из пыли»: canvas шире плашки, чтобы пыль клубилась за её краем */
   .hero__dust { position: absolute; left: -60px; top: -40px; width: calc(100% + 120px); height: calc(100% + 80px); pointer-events: none; }
   .hero__logo.is-dust :global(.logo__name) { color: transparent; }
   .hero__logo :global(.logo__text) { justify-items: center; text-align: center; }
@@ -161,104 +161,152 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
 </style>
 
 <script>
-  // Название на плашке из частиц: при загрузке частицы слетаются в буквы,
-  // при наведении разбегаются от курсора и собираются обратно.
+  // Название на плашке «выезжает из пыли»: буквы проявляются слева направо, будто мимо проехал
+  // мотоцикл, а позади остаётся тающее облако. Курсор над плашкой поднимает пыль.
   {
     const plate = document.querySelector<HTMLElement>('[data-dust]');
     const cv = plate?.querySelector<HTMLCanvasElement>('[data-dust-canvas]');
     const nameEl = plate?.querySelector<HTMLElement>('.logo__name');
     if (plate && cv && nameEl && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const ctx = cv.getContext('2d')!;
-      type P = { x: number; y: number; vx: number; vy: number; hx: number; hy: number; a: number };
-      let parts: P[] = [];
-      let raf = 0, mx = -1e4, my = -1e4, dpr = 1;
+      const SWEEP = 1500; // мс, за сколько «проезжает» вся надпись
+      const FADE = 34;    // px мягкого края у фронта проявления
+      type Puff = { x: number; y: number; vx: number; vy: number; r: number; g: number; t: number; life: number; a: number };
+      const puffs: Puff[] = [];
+      let text: HTMLCanvasElement | null = null;
+      const work = document.createElement('canvas');
+      const wctx = work.getContext('2d')!;
+      let raf = 0, dpr = 1, w = 0, h = 0, ox = 0, oy = 0, tw = 0, th = 0, t0 = -1, done = false;
+      let px = 0, py = 0, hasPrev = false;
+
+      // мягкое пятно пыли: рисуем один раз и дальше только масштабируем
+      const sprite = document.createElement('canvas');
+      sprite.width = sprite.height = 64;
+      {
+        const s = sprite.getContext('2d')!;
+        const g = s.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, 'rgba(222, 206, 176, 0.55)');
+        g.addColorStop(0.5, 'rgba(214, 196, 164, 0.22)');
+        g.addColorStop(1, 'rgba(206, 188, 156, 0)');
+        s.fillStyle = g; s.fillRect(0, 0, 64, 64);
+      }
 
       const build = () => {
         dpr = Math.min(devicePixelRatio || 1, 2);
         const cb = cv.getBoundingClientRect();
-        cv.width = Math.round(cb.width * dpr); cv.height = Math.round(cb.height * dpr);
+        w = cb.width; h = cb.height;
+        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        // рисуем название тем же шрифтом во внеэкранный canvas и берём точки из закрашенных пикселей
+        work.width = cv.width; work.height = cv.height;
+        wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // название тем же шрифтом и с тем же переносом, что у DOM-текста
         const nb = nameEl.getBoundingClientRect();
         const cs = getComputedStyle(nameEl);
-        const fs = parseFloat(cs.fontSize);
+        ox = nb.left - cb.left; oy = nb.top - cb.top; tw = nb.width; th = nb.height;
         const off = document.createElement('canvas');
-        const S = 3; // пикселей на CSS-пиксель при выборке, для чёткости
-        off.width = Math.ceil(nb.width * S); off.height = Math.ceil(nb.height * S);
+        off.width = Math.ceil(tw * dpr); off.height = Math.ceil(th * dpr);
         const o = off.getContext('2d')!;
-        o.scale(S, S);
-        o.font = `${cs.fontStyle} ${cs.fontWeight} ${fs}px ${cs.fontFamily}`;
-        o.fillStyle = '#fff';
-        o.textBaseline = 'alphabetic';
-        // перенос строк такой же, как у DOM-текста: по словам, в ширину элемента
+        o.scale(dpr, dpr);
+        o.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        o.fillStyle = '#f4f0e2';
         const words = (nameEl.textContent || '').trim().split(/\s+/);
         const lines: string[] = [];
         let cur = '';
-        for (const w of words) {
-          const t = cur ? `${cur} ${w}` : w;
-          // переносим, только если DOM-текст тоже переносится (на телефоне), иначе одна строка
-          if (cs.whiteSpace !== 'nowrap' && o.measureText(t).width > nb.width + 1 && cur) { lines.push(cur); cur = w; } else cur = t;
+        for (const wd of words) {
+          const t = cur ? `${cur} ${wd}` : wd;
+          if (cs.whiteSpace !== 'nowrap' && o.measureText(t).width > tw + 1 && cur) { lines.push(cur); cur = wd; } else cur = t;
         }
         lines.push(cur);
-        const lh = nb.height / lines.length;
-        const align = cs.textAlign;
+        const lh = th / lines.length;
         lines.forEach((ln, i) => {
-          const wdt = o.measureText(ln).width;
-          const x = align === 'center' || lines.length === 1 ? (nb.width - wdt) / 2 : 0;
+          const lw = o.measureText(ln).width;
+          const x = cs.textAlign === 'center' || lines.length === 1 ? (tw - lw) / 2 : 0;
           o.fillText(ln, x, i * lh + lh * 0.78);
         });
-        const img = o.getImageData(0, 0, off.width, off.height).data;
-        const step = 1.15; // CSS px между частицами
-        const ox = nb.left - cb.left, oy = nb.top - cb.top;
-        const old = parts;
-        parts = [];
-        for (let y = 0; y < nb.height; y += step) {
-          for (let x = 0; x < nb.width; x += step) {
-            const k = (Math.floor(y * S) * off.width + Math.floor(x * S)) * 4 + 3;
-            if (img[k] > 120) {
-              const prev = old[parts.length];
-              parts.push({
-                hx: ox + x, hy: oy + y,
-                // стартуем из случайной точки вокруг плашки, как облако пыли
-                x: prev ? prev.x : ox + nb.width / 2 + (Math.random() - 0.5) * cb.width * 1.4,
-                y: prev ? prev.y : oy + nb.height / 2 + (Math.random() - 0.5) * cb.height * 1.6,
-                vx: 0, vy: 0, a: 0.75 + Math.random() * 0.25,
-              });
-            }
-          }
-        }
+        text = off;
         plate.classList.add('is-dust');
         kick();
       };
 
-      const tick = () => {
-        const w = cv.width / dpr, h = cv.height / dpr;
+      const puff = (x: number, y: number, vx: number, vy: number, r: number, life: number, a: number) => {
+        if (puffs.length > 260) return;
+        puffs.push({ x, y, vx, vy, r, g: 0.18 + Math.random() * 0.25, t: performance.now(), life, a });
+      };
+
+      const tick = (now: number) => {
         ctx.clearRect(0, 0, w, h);
-        let moving = false;
-        for (const p of parts) {
-          // пружина к своей точке в букве
-          p.vx += (p.hx - p.x) * 0.06;
-          p.vy += (p.hy - p.y) * 0.06;
-          // отталкивание от курсора
-          const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
-          if (d2 < 900) { const f = (900 - d2) / 900 * 2.2; const d = Math.sqrt(d2) || 1; p.vx += dx / d * f; p.vy += dy / d * f; }
-          p.vx *= 0.8; p.vy *= 0.8;
-          p.x += p.vx; p.y += p.vy;
-          if (Math.abs(p.vx) + Math.abs(p.vy) > 0.02 || Math.abs(p.hx - p.x) + Math.abs(p.hy - p.y) > 0.3) moving = true;
-          ctx.fillStyle = `rgba(244, 240, 226, ${p.a})`;
-          ctx.fillRect(p.x, p.y, 1.25, 1.25);
+        if (t0 < 0) t0 = now;
+        let front = ox + tw + FADE;
+        if (!done) {
+          const p = Math.min(1, (now - t0) / SWEEP);
+          const e = 1 - Math.pow(1 - p, 2.2);
+          front = ox - FADE + (tw + FADE * 2) * e;
+          if (p < 1) {
+            // из-под «колеса» на фронте летит пыль и остаётся позади
+            for (let i = 0; i < 3; i++) {
+              puff(front - Math.random() * 8, oy + th * (0.35 + Math.random() * 0.75),
+                -0.4 - Math.random() * 0.9, -0.15 - Math.random() * 0.35,
+                7 + Math.random() * 9, 1100 + Math.random() * 900, 0.75);
+            }
+          } else {
+            done = true;
+            // на финише колесо тормозит: клубок пыли у конца надписи
+            for (let i = 0; i < 14; i++) {
+              puff(ox + tw - Math.random() * 10, oy + th * (0.3 + Math.random() * 0.8),
+                0.2 + Math.random() * 0.9, -0.2 - Math.random() * 0.5,
+                8 + Math.random() * 10, 1300 + Math.random() * 900, 0.8);
+            }
+          }
         }
-        raf = moving ? requestAnimationFrame(tick) : 0;
+
+        // пыль под текстом: быстро поднимается, медленно тает
+        for (let i = puffs.length - 1; i >= 0; i--) {
+          const q = puffs[i];
+          const k = (now - q.t) / q.life;
+          if (k >= 1) { puffs.splice(i, 1); continue; }
+          q.vx *= 0.975; q.vy *= 0.975; q.vy -= 0.004;
+          q.x += q.vx; q.y += q.vy; q.r += q.g;
+          ctx.globalAlpha = q.a * Math.min(1, k * 6) * (1 - k) * (1 - k);
+          ctx.drawImage(sprite, q.x - q.r, q.y - q.r, q.r * 2, q.r * 2);
+        }
+        ctx.globalAlpha = 1;
+
+        if (text) {
+          if (done) ctx.drawImage(text, ox, oy, tw, th);
+          else {
+            // буквы проявляются с мягким краем у фронта
+            wctx.clearRect(0, 0, w, h);
+            wctx.drawImage(text, ox, oy, tw, th);
+            wctx.globalCompositeOperation = 'destination-in';
+            const g = wctx.createLinearGradient(front - FADE, 0, front, 0);
+            g.addColorStop(0, 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            wctx.fillStyle = g;
+            wctx.fillRect(0, 0, w, h);
+            wctx.globalCompositeOperation = 'source-over';
+            ctx.drawImage(work, 0, 0, w, h);
+          }
+        }
+        raf = !done || puffs.length ? requestAnimationFrame(tick) : 0;
       };
       const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
 
       plate.addEventListener('pointermove', (e) => {
         const b = cv.getBoundingClientRect();
-        mx = e.clientX - b.left; my = e.clientY - b.top;
-        kick();
+        const x = e.clientX - b.left, y = e.clientY - b.top;
+        const dx = hasPrev ? x - px : 0, dy = hasPrev ? y - py : 0;
+        px = x; py = y; hasPrev = true;
+        // чем резче ведут курсор, тем больше пыли; пыль уходит по ходу движения
+        const n = Math.min(3, Math.floor(Math.hypot(dx, dy) / 6));
+        for (let i = 0; i < n; i++) {
+          puff(x + (Math.random() - 0.5) * 6, y + (Math.random() - 0.5) * 6,
+            dx * 0.08 + (Math.random() - 0.5) * 0.6, dy * 0.08 - 0.2 - Math.random() * 0.3,
+            5 + Math.random() * 6, 900 + Math.random() * 700, 0.6);
+        }
+        if (n) kick();
       });
-      plate.addEventListener('pointerleave', () => { mx = my = -1e4; kick(); });
-      // ждём шрифты, иначе буквы соберутся системным шрифтом; стартуем после заставки
+      plate.addEventListener('pointerleave', () => { hasPrev = false; });
+      // ждём шрифты, иначе надпись нарисуется системным шрифтом; стартуем после заставки
       document.fonts.ready.then(() => setTimeout(build, 500));
       let rt = 0;
       addEventListener('resize', () => { clearTimeout(rt); rt = window.setTimeout(build, 200); });

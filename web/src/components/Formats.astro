@@ -1,0 +1,280 @@
+---
+// Варианты проката: три вкладки на одном экране. По умолчанию открыт квест.
+// При переключении кадр открывается из узкой щели, как визор шлема.
+import Pic from './Pic.astro';
+import Icon from './Icon.astro';
+
+type Tab = {
+  id: 'ride' | 'quest' | 'gift';
+  name: string;
+  photo: 'field' | 'pair' | 'hug';
+  title: string;
+  text: string;
+  params: [string, string][];
+};
+
+const tabs: Tab[] = [
+  {
+    id: 'ride',
+    name: 'Прогулка',
+    photo: 'field',
+    title: 'Час по лесу, полям и берегу реки',
+    text: 'Лёгкий электроэндуро, лесные дороги и, если захочется, трасса. Темп выбираете вы, инструктор подстраивается. Можно одному, можно вдвоём: два мотоцикла и инструктор рядом на третьем.',
+    params: [['Кто едет', 'один или двое, с инструктором'], ['Опыт', 'не нужен, права тоже'], ['Когда', 'круглый год, днём и ночью']],
+  },
+  {
+    id: 'quest',
+    name: 'Квест',
+    photo: 'pair',
+    title: 'Четыре испытания и финал, которого не ждёшь',
+    text: 'Маршрут через лес, поля и берег реки. Какие будут испытания, узнаете только на месте. Работаете командой, инструктор сопровождает весь путь.',
+    params: [['Кому', 'паре, друзьям, родителю с ребёнком'], ['Испытания', '4 секретных и сюрприз'], ['Инструктор', 'на всём маршруте']],
+  },
+  {
+    id: 'gift',
+    name: 'Сертификат',
+    photo: 'hug',
+    title: 'Подарить поездку, а не вещь',
+    text: 'Сертификат на прогулку или квест. Бессрочный: дату получатель выберет сам, когда будет готов. Другу, парню, девушке, мужу, сыну или дочери, особенно тем, у кого «всё есть».',
+    params: [['На что', 'прогулка или квест'], ['Срок', 'бессрочный'], ['Дата', 'выбирает получатель']],
+  },
+];
+const START = 'quest';
+---
+<section class="vars wrap" id="formats" aria-labelledby="vars-title" data-vars>
+  <header class="vars__head">
+    <h2 id="vars-title">Варианты проката</h2>
+    <div class="vars__tabs" role="tablist" aria-label="Варианты проката">
+      {tabs.map((t) => (
+        <button
+          class="vars__tab"
+          role="tab"
+          type="button"
+          id={`tab-${t.id}`}
+          aria-controls={`panel-${t.id}`}
+          aria-selected={t.id === START ? 'true' : 'false'}
+          tabindex={t.id === START ? 0 : -1}
+          data-tab={t.id}
+        >
+          {t.id === 'gift' && <Icon name="gift" size={17} />}
+          <span>{t.name}</span>
+        </button>
+      ))}
+    </div>
+  </header>
+
+  <div class="vars__stage">
+    {tabs.map((t) => (
+      <div
+        class:list={['vars__panel', { 'is-shown': t.id === START }]}
+        role="tabpanel"
+        id={`panel-${t.id}`}
+        aria-labelledby={`tab-${t.id}`}
+        hidden={t.id !== START}
+        data-panel={t.id}
+      >
+        <div class="vars__visor">
+          <Pic id={t.photo} sizes="(max-width: 860px) 92vw, 54vw" early />
+          {t.id === 'gift' && (
+            <div class="plate" aria-hidden="true">
+              <span class="plate__top"><Icon name="gift" size={16} /> Подарочный сертификат</span>
+              <span class="plate__name">Эндуро электромотоциклы</span>
+              <span class="plate__meta"><span>Смоленск</span><span>Бессрочный</span></span>
+            </div>
+          )}
+        </div>
+        <div class="vars__body">
+          <h3>{t.title}</h3>
+          <p class="vars__text">{t.text}</p>
+          <dl class="vars__params">
+            {t.params.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+          </dl>
+          <a class="btn" href="#call">Узнать стоимость</a>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .vars { padding-top: clamp(90px, 11vw, 160px); padding-bottom: clamp(80px, 10vw, 140px); }
+  .vars__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 28px 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: clamp(28px, 4vw, 48px);
+  }
+  .vars__head h2 { font-size: clamp(44px, 6vw, 92px); }
+
+  .vars__tabs { display: flex; flex-wrap: wrap; gap: 12px; }
+  .vars__tab {
+    --ring: rgb(255 178 63 / 0.75);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 30px 17px;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: 500 15px/1 var(--f-label);
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    isolation: isolate;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .vars__tab:hover { background: rgb(14 26 18 / 0.08); }
+  /* пульс: от невыбранной кнопки расходится янтарное кольцо, кнопки пульсируют по очереди */
+  .vars__tab::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    border: 2px solid var(--ring);
+    opacity: 0;
+    pointer-events: none;
+    animation: tab-pulse 2.4s var(--ease-out) infinite;
+  }
+  .vars__tab:nth-child(2)::after { animation-delay: 0.8s; }
+  .vars__tab:nth-child(3)::after { animation-delay: 1.6s; }
+  @keyframes tab-pulse {
+    0% { transform: scale(1); opacity: 0.9; }
+    70%, 100% { transform: scale(1.35, 1.7); opacity: 0; }
+  }
+  /* выбранная: заливка и бегущий блик */
+  .vars__tab[aria-selected='true'] { background: var(--forest); border-color: var(--forest); color: var(--cream); overflow: hidden; }
+  .vars__tab[aria-selected='true']::after { animation: none; opacity: 0; }
+  .vars__tab[aria-selected='true']::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 178 63 / 0.55) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%;
+    animation: tab-shine 3.2s ease-in-out infinite;
+  }
+  @keyframes tab-shine {
+    0% { background-position: 130% 0; }
+    55%, 100% { background-position: -30% 0; }
+  }
+
+  .vars__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+  .vars__panel[hidden] { display: none; }
+
+  .vars__visor {
+    position: relative;
+    clip-path: inset(50% 0 50% 0 round 2px);
+  }
+  .vars__visor :global(.pic) { aspect-ratio: 16 / 10.5 !important; }
+  .vars__visor :global(img) { transform: scale(1.16); }
+  /* сертификат: вертикальный кадр целиком, без обрезки под горизонт */
+  .vars__panel[data-panel='gift'] { grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: clamp(32px, 6vw, 100px); align-items: center; }
+  [data-panel='gift'] .vars__visor { max-width: 480px; }
+  [data-panel='gift'] .vars__visor :global(.pic) { aspect-ratio: 4 / 5 !important; }
+  [data-panel='gift'] .plate { right: 6%; bottom: 5%; width: min(72%, 320px); }
+  [data-panel='gift'] .vars__body { max-width: 520px; }
+  .vars__panel.is-shown .vars__visor { clip-path: inset(0 0 0 0 round 2px); transition: clip-path 0.95s var(--ease-out); }
+  .vars__panel.is-shown .vars__visor :global(.is-loaded img) { transform: scale(1); transition: transform 1.5s var(--ease-out), opacity 0.5s, filter 0.9s; }
+
+  .vars__body {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .vars__panel.is-shown .vars__body { opacity: 1; transform: none; transition: opacity 0.5s 0.2s, transform 0.8s var(--ease-out) 0.2s; }
+  .vars__text { color: var(--ink-soft); max-width: 46ch; }
+  .vars__params { margin: 4px 0 12px; width: 100%; }
+  .vars__params div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 15px; }
+  .vars__params dt { color: var(--ink-soft); }
+  .vars__params dd { margin: 0; text-align: right; }
+
+  /* металлическая пластина сертификата: шлифовка и блик */
+  .plate {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: min(46%, 320px);
+    aspect-ratio: 1.6;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    border-radius: 10px;
+    color: #23281f;
+    background:
+      radial-gradient(120% 90% at 25% 15%, rgb(255 255 255 / 0.75), transparent 45%),
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.07) 0 1px, rgb(0 0 0 / 0.05) 1px 2px, transparent 2px 4px),
+      conic-gradient(from 210deg at 60% 50%, #9da29a, #e9ebe5, #8c918a, #d7dad2, #a3a89f, #f2f3ee, #9da29a);
+    outline: 1px solid rgb(0 0 0 / 0.12);
+    outline-offset: -1px;
+  }
+  .plate__top { display: flex; align-items: center; gap: 8px; font: 500 10px/1 var(--f-label); }
+  .plate__name { align-self: center; font: 500 clamp(20px, 2vw, 28px)/1 var(--f-display); }
+  .plate__meta { display: flex; justify-content: space-between; font: 500 10px/1 var(--f-label); opacity: 0.8; }
+
+  @media (max-width: 860px) {
+    .vars__panel { grid-template-columns: 1fr; }
+    .vars__tabs { width: 100%; }
+    .vars__tab { flex: 1; justify-content: center; padding: 14px 10px 13px; font-size: 12px; }
+    .vars__tab :global(svg) { display: none; }
+    .plate { width: 58%; right: 10px; bottom: 10px; padding: 10px 12px; }
+    .vars__panel[data-panel='gift'] { grid-template-columns: 1fr; }
+    [data-panel='gift'] .plate { right: 10px; bottom: 10px; width: 62%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vars__visor { clip-path: none; }
+    .vars__tab::after, .vars__tab::before { animation: none !important; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-vars]');
+  if (root) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+
+    const select = (id: string, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      panels.forEach((p) => {
+        const on = p.dataset.panel === id;
+        p.classList.remove('is-shown');
+        p.hidden = !on;
+        if (on) {
+          void p.offsetWidth; // перезапуск анимации визора
+          p.classList.add('is-shown');
+        }
+      });
+    };
+
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t.dataset.tab!));
+      t.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        select(tabs[(i + d + tabs.length) % tabs.length].dataset.tab!, true);
+      });
+    });
+
+    // ссылки «Подарок» и т.п. в других блоках открывают нужную вкладку
+    document.querySelectorAll<HTMLAnchorElement>('a[data-open-tab]').forEach((a) =>
+      a.addEventListener('click', () => select(a.dataset.openTab!)),
+    );
+  }
+</script>

@@ -1,0 +1,30 @@
+---
+// Знак: протектор колеса (24 грунтозацепа) и «Э», у которого перекладина — ступенька-молния.
+interface Props { size?: number; withText?: boolean; class?: string }
+const { size = 40, withText = true, class: cls } = Astro.props;
+const knobs = Array.from({ length: 24 }, (_, i) => i * 15);
+---
+<span class:list={['logo', cls]}>
+  <svg class="logo__mark" width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+    <g fill="currentColor">
+      {knobs.map((deg) => <rect x="22.6" y="1.5" width="2.8" height="4.2" rx="0.4" transform={`rotate(${deg} 24 24)`} />)}
+    </g>
+    <circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="1.6" />
+    <path d="M17.5 17.2a9.6 9.6 0 1 1 0 13.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" />
+    <path d="M19 22.6h6.2l-2.4 2.8h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" />
+  </svg>
+  {withText && (
+    <span class="logo__text">
+      <span class="logo__name">Прокат электромотоциклов</span>
+      <span class="logo__sub">Смоленск · с инструктором</span>
+    </span>
+  )}
+</span>
+
+<style>
+  .logo { display: inline-flex; align-items: center; gap: 12px; color: inherit; }
+  .logo__mark { flex: none; }
+  .logo__text { display: grid; gap: 4px; line-height: 1; }
+  .logo__name { font: 500 21px/1 var(--f-display); letter-spacing: -0.005em; white-space: nowrap; }
+  .logo__sub { font: 500 8.5px/1 var(--f-label); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.8; }
+</style>

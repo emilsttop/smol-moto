@@ -1,0 +1,63 @@
+---
+// Три вертикальных видеоотзыва рядом, под каждым имя гостя.
+// Пока в config.ts нет видео, стоят заглушки с подписью «Имя гостя».
+import { videoReviews } from '../config';
+
+const STUBS = ['hero', 'rest', 'pair'];
+const slides = (videoReviews.length ? videoReviews : STUBS.map((id) => ({ src: '', poster: `/img/${id}-640.webp`, name: '' }))).slice(0, 3);
+---
+<section class="rev" id="reviews" aria-labelledby="rev-title">
+  <div class="wrap">
+    <h2 id="rev-title">Гости о поездке</h2>
+    <ul class="rev__grid">
+      {slides.map((s) => (
+        <li>
+          {s.src ? (
+            <video src={s.src} poster={s.poster} controls preload="none" playsinline></video>
+          ) : (
+            <div class="rev__stub" style={`--bg:url(${s.poster})`}>
+              <span class="rev__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l10-6.5z" fill="currentColor" /></svg></span>
+              <span class="rev__soon">Видео скоро</span>
+            </div>
+          )}
+          <p class="rev__name">{s.name || 'Имя гостя'}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .rev { background: var(--forest); color: var(--cream); padding: clamp(80px, 10vw, 140px) 0; }
+  .rev h2 { margin-bottom: clamp(36px, 4vw, 56px); }
+  .rev__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 2vw, 28px);
+  }
+  .rev__grid video, .rev__stub { width: 100%; aspect-ratio: 9 / 16; border-radius: 4px; object-fit: cover; background: var(--night); }
+  .rev__stub {
+    position: relative;
+    display: grid;
+    place-items: center;
+    background: var(--bg) center / cover;
+    overflow: hidden;
+  }
+  .rev__stub::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgb(11 20 14 / 0.75), rgb(11 20 14 / 0.2) 55%); }
+  .rev__play {
+    position: relative; z-index: 1;
+    width: 64px; height: 64px; display: grid; place-items: center;
+    border-radius: 50%; background: var(--accent); color: var(--night);
+  }
+  .rev__soon { position: absolute; z-index: 1; left: 16px; bottom: 14px; font-size: 13px; opacity: 0.8; }
+  .rev__name { margin-top: 14px; font: 400 clamp(22px, 2vw, 28px)/1.1 var(--f-display); }
+
+  @media (max-width: 860px) {
+    /* на телефоне три видео не помещаются: листаются пальцем */
+    .rev__grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); scrollbar-width: none; }
+    .rev__grid li { flex: 0 0 68%; scroll-snap-align: start; }
+  }
+</style>

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+api/data/
+.env
+*.log
+
+# скрипты деплоя на боевую машину: в публичный репозиторий не выкладываем
+deploy/deploy_prod.sh
+deploy/swap.ps1

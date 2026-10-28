@@ -1,0 +1,21 @@
+# /etc/systemd/system/moto-smolensk-api.service
+[Unit]
+Description=Moto Smolensk lead API
+After=network.target
+
+[Service]
+Type=simple
+User=moto
+WorkingDirectory=/srv/moto-smolensk/api
+EnvironmentFile=/srv/moto-smolensk/api/.env
+ExecStart=/usr/bin/node dist/server.js
+Restart=always
+RestartSec=3
+# логи пишет journald; pino выводит JSON в stdout
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/moto-smolensk
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

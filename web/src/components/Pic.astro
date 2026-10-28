@@ -1,0 +1,28 @@
+---
+// <picture> с LQIP-подложкой. Пока кадр грузится, видна пиксельная превьюшка,
+// по загрузке кадр «проявляется» сверху вниз (см. .pic.is-loaded в global-скрипте).
+import photos from '../data/photos.json';
+type Id = keyof typeof photos;
+// eager: первый экран (высокий приоритет); early: грузить сразу, но без приоритета (скрытые панели)
+interface Props { id: Id; sizes?: string; eager?: boolean; early?: boolean; class?: string; alt?: string }
+const { id, sizes = '100vw', eager = false, early = false, class: cls, alt } = Astro.props;
+const p = photos[id];
+const set = (ext: string) => p.widths.map((w) => `/img/${id}-${w}.${ext} ${w}w`).join(', ');
+const fallback = `/img/${id}-${p.widths[Math.min(1, p.widths.length - 1)]}.webp`;
+---
+<span class:list={['pic', cls]} style={`--lqip:url(${p.lqip});aspect-ratio:${p.w}/${p.h}`} data-pic>
+  <picture>
+    <source type="image/avif" srcset={set('avif')} sizes={sizes} />
+    <img
+      src={fallback}
+      srcset={set('webp')}
+      sizes={sizes}
+      width={p.w}
+      height={p.h}
+      alt={alt ?? p.alt}
+      loading={eager || early ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : 'auto'}
+      decoding="async"
+    />
+  </picture>
+</span>

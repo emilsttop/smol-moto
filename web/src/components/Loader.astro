@@ -1,0 +1,98 @@
+---
+// Загрузчик первого визита: «орб» из точек на вращающейся сфере (по мотивам libraries.dev/orbs)
+// и подписи-состояния. Без JS сам гаснет через 4 с за счёт CSS-анимации.
+import Logo from './Logo.astro';
+---
+<div class="loader" data-loader aria-hidden="true">
+  <div class="loader__inner">
+    <canvas class="loader__orb" width="160" height="160"></canvas>
+    <p class="loader__state label" data-loader-state>Заряжаем мотоциклы</p>
+    <Logo size={28} class="loader__logo" />
+  </div>
+</div>
+
+<style>
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background: var(--paper);
+    animation: loader-fallback 0.6s ease 4s forwards;
+  }
+  .loader.is-done {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.7s var(--ease-out), visibility 0s 0.7s;
+  }
+  .loader__inner { display: grid; justify-items: center; gap: 18px; }
+  .loader__orb { width: 80px; height: 80px; }
+  .loader__state { color: var(--ink-soft); min-height: 1em; }
+  .loader__state::after { content: '…'; }
+  :global(.loader__logo) { margin-top: 28px; opacity: 0.85; }
+  @keyframes loader-fallback { to { opacity: 0; visibility: hidden; } }
+</style>
+
+<script>
+  const el = document.querySelector<HTMLElement>('[data-loader]');
+  const KEY = 'loader-seen';
+  let seen = false;
+  try { seen = sessionStorage.getItem(KEY) === '1'; } catch {}
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (el && seen) el.remove();
+  else if (el) {
+    try { sessionStorage.setItem(KEY, '1'); } catch {}
+    const canvas = el.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const N = 180;
+    // точки равномерно по сфере (спираль Фибоначчи)
+    const pts = Array.from({ length: N }, (_, i) => {
+      const y = 1 - (i / (N - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const t = Math.PI * (3 - Math.sqrt(5)) * i;
+      return [Math.cos(t) * r, y, Math.sin(t) * r];
+    });
+    let raf = 0;
+    const draw = (now: number) => {
+      const a = now / 1400;
+      const wob = Math.sin(now / 600) * 0.18;
+      ctx.clearRect(0, 0, 160, 160);
+      for (const [x, y, z] of pts) {
+        const rx = x * Math.cos(a) - z * Math.sin(a);
+        const rz = x * Math.sin(a) + z * Math.cos(a);
+        const ry = y + Math.sin(rx * 3 + now / 300) * wob * 0.3;
+        const d = (rz + 1.6) / 2.6;
+        ctx.globalAlpha = 0.15 + d * 0.75;
+        ctx.fillStyle = '#1d221c';
+        ctx.beginPath();
+        ctx.arc(80 + rx * 58, 80 + ry * 58, 0.6 + d * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (!reduce) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+
+    const states = ['Заряжаем мотоциклы', 'Проверяем тормоза', 'Подбираем шлем'];
+    const stateEl = el.querySelector('[data-loader-state]')!;
+    let s = 0;
+    const tick = setInterval(() => { stateEl.textContent = states[++s % states.length]; }, 900);
+
+    const started = performance.now();
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      const wait = Math.max(0, 1100 - (performance.now() - started));
+      setTimeout(() => {
+        el.classList.add('is-done');
+        clearInterval(tick);
+        setTimeout(() => { cancelAnimationFrame(raf); el.remove(); }, 800);
+      }, wait);
+    };
+    if (document.readyState === 'complete') finish();
+    else addEventListener('load', finish, { once: true });
+    setTimeout(finish, 3000);
+  }
+</script>

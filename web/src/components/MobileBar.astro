@@ -1,0 +1,44 @@
+---
+// Нижняя панель на телефоне: одна кнопка звонка. Прячется у блока с номером.
+import Icon from './Icon.astro';
+import { site } from '../config';
+---
+<div class="mbar" data-mbar>
+  <a class="mbar__call" href={`tel:${site.phone}`}>
+    <Icon name="phone" size={18} />
+    <span>Позвонить {site.phoneDisplay}</span>
+  </a>
+</div>
+
+<style>
+  .mbar { display: none; }
+  @media (max-width: 860px) {
+    .mbar {
+      position: fixed; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 50;
+      display: block;
+      padding: 6px; border-radius: 999px;
+      background: var(--ink);
+      transform: translateY(150%);
+      transition: transform 0.45s var(--ease-out);
+    }
+    .mbar.is-shown { transform: none; }
+  }
+  .mbar__call {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    height: 48px; border-radius: 999px;
+    background: var(--cream); color: var(--ink);
+    font: 500 11px/1 var(--f-label); letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none;
+  }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-mbar]')!;
+  // показываем панель, когда герой ушёл из вида, и прячем у блока с телефоном
+  const hero = document.querySelector('.hero');
+  const call = document.querySelector('#call');
+  let heroOut = false, callIn = false;
+  const sync = () => bar.classList.toggle('is-shown', heroOut && !callIn);
+  if (hero) new IntersectionObserver(([e]) => { heroOut = !e.isIntersecting; sync(); }).observe(hero);
+  if (call) new IntersectionObserver(([e]) => { callIn = e.isIntersecting; sync(); }, { threshold: 0.15 }).observe(call);
+</script>

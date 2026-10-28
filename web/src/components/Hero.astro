@@ -1,0 +1,226 @@
+---
+// Первый экран. Логотип по центру сверху стоит на подложке, от неё за курсором
+// тянется луч света (без мыши медленно покачивается сам), чтобы сразу притянуть взгляд.
+import Pic from './Pic.astro';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site } from '../config';
+const words = ['Сядете', 'и поедете', 'через', '10 минут'];
+---
+<header class="hero">
+  <div class="hero__frame" data-beacon>
+    <Pic id="hero" eager sizes="(max-width: 700px) 180vw, 96vw" class="hero__pic" />
+    <div class="hero__shade" aria-hidden="true"></div>
+    <div class="hero__beam" aria-hidden="true"></div>
+
+    <nav class="hero__nav" aria-label="Разделы">
+      <ul class="hero__links">
+        <li><a href="#formats">Форматы</a></li>
+        <li><a href="#formats" data-open-tab="quest">Квест</a></li>
+        <li><a href="#formats" data-open-tab="gift">Подарок</a></li>
+        <li><a href="#faq">Вопросы</a></li>
+      </ul>
+      <a href="/" class="hero__logo" aria-label="Прокат электромотоциклов, Смоленск. На главную" data-beacon-src>
+        <Logo size={36} />
+      </a>
+      <div class="hero__right">
+        <a class="hero__phone" href={`tel:${site.phone}`} aria-label={`Позвонить ${site.phoneDisplay}`}><Icon name="phone" size={16} /><span>{site.phoneDisplay}</span></a>
+      </div>
+    </nav>
+
+    <div class="hero__content">
+      <h1 class="hero__title">
+        {words.map((w, i) => (
+          <>
+            <span class="hero__word" style={`--i:${i}`}>{w}</span>
+            {i === 1 && <br class="hide-sm" />}
+          </>
+        ))}
+      </h1>
+      <p class="hero__sub">
+        Даже если вы ни разу не сидели на мотоцикле. Инструктор рядом,
+        <br class="hide-sm" />маршрут через лес, поля и берег реки.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--cream" href="#call">Подобрать время</a>
+        <p class="hero__gift"><Icon name="bolt" size={16} />Фото и видео поездки дарим каждому</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .hero { padding: var(--gutter) var(--gutter) 0; }
+  .hero__frame {
+    --bx: 50%;
+    --by: 60px;
+    --a: 180deg;
+    position: relative;
+    min-height: min(92svh, 980px);
+    border-radius: 4px;
+    overflow: hidden;
+    color: var(--cream);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    isolation: isolate;
+  }
+  :global(.hero__pic) { position: absolute !important; inset: 0; z-index: -3; aspect-ratio: auto !important; }
+  .hero__shade {
+    position: absolute; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(70% 55% at 50% 64%, rgb(4 10 6 / 0.55), transparent 75%),
+      linear-gradient(to bottom, rgb(4 10 6 / 0.7), rgb(4 10 6 / 0.15) 26%, rgb(4 10 6 / 0.25) 45%, rgb(4 10 6 / 0.85) 92%);
+  }
+
+  /* луч от подложки логотипа в сторону курсора */
+  .hero__beam {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(circle at var(--bx) var(--by), rgb(255 230 175 / 0.85), rgb(255 195 105 / 0.42) 20%, rgb(255 170 60 / 0.16) 48%, transparent 80%);
+    mix-blend-mode: screen;
+    -webkit-mask: conic-gradient(from calc(var(--a) - 26deg) at var(--bx) var(--by), transparent, #000 10deg, #000 42deg, transparent 52deg);
+            mask: conic-gradient(from calc(var(--a) - 26deg) at var(--bx) var(--by), transparent, #000 10deg, #000 42deg, transparent 52deg);
+  }
+
+  .hero__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 22px clamp(18px, 2.4vw, 34px);
+  }
+  .hero__links { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+  .hero__links a, .hero__phone {
+    font: 500 10.5px/1 var(--f-label); letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none;
+  }
+  .hero__links a { opacity: 0.85; transition: opacity 0.2s; }
+  .hero__links a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+
+  /* подложка логотипа: тёмная плашка, по рамке которой бежит блик со стороны курсора */
+  .hero__logo {
+    position: relative;
+    text-decoration: none;
+    padding: 16px 26px 14px;
+    border-radius: 18px;
+    background: rgb(6 14 9 / 0.72);
+    isolation: isolate;
+  }
+  .hero__logo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: conic-gradient(from calc(var(--a) - 50deg), transparent 0deg, rgb(255 200 110 / 0.95) 50deg, transparent 100deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+  .hero__logo :global(.logo) { flex-direction: column; text-align: center; gap: 10px; }
+  .hero__logo :global(.logo__text) { justify-items: center; }
+  .hero__logo :global(.logo__mark) { color: var(--accent); }
+  .hero__right { display: flex; justify-content: flex-end; align-items: center; gap: 26px; }
+  .hero__phone {
+    display: inline-flex; align-items: center; gap: 9px; white-space: nowrap;
+    padding: 11px 16px 10px; border: 1px solid rgb(244 240 226 / 0.55); border-radius: 999px;
+    font-size: 12px; letter-spacing: 0.06em; transition: background-color 0.25s, color 0.25s;
+  }
+  .hero__phone:hover { background: var(--cream); color: var(--ink); }
+
+  .hero__content {
+    align-self: end;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    padding: 0 clamp(18px, 4vw, 60px) clamp(28px, 4vw, 52px);
+    text-shadow: 0 1px 18px rgb(0 0 0 / 0.45);
+  }
+  .hero__title {
+    font-size: clamp(54px, 8.6vw, 150px);
+    line-height: 0.9;
+    letter-spacing: -0.035em;
+  }
+  .hero__word {
+    display: inline-block;
+    margin-inline: 0.03em;
+    animation: word-in 1.2s var(--ease-out) both;
+    animation-delay: calc(1.15s + var(--i) * 0.09s);
+  }
+  @keyframes word-in {
+    from { opacity: 0; transform: translateY(0.35em); filter: blur(8px); }
+  }
+  .hero__sub { margin-top: 24px; font-size: 16px; line-height: 1.5; }
+  .hero__cta {
+    width: 100%;
+    margin-top: 34px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  .hero__gift { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; }
+  .hero__gift :global(svg) { color: var(--accent); }
+
+  @media (max-width: 860px) {
+    .hero__links { display: none; }
+    .hero__nav { grid-template-columns: 1fr auto; gap: 12px; padding: 16px; }
+    .hero__logo { padding: 10px 14px; border-radius: 14px; }
+    .hero__logo :global(.logo) { flex-direction: row; text-align: left; gap: 10px; }
+    .hero__logo :global(.logo__text) { justify-items: start; }
+    .hero__logo :global(.logo__name) { font-size: 15px; white-space: normal; max-width: 9.5em; line-height: 1.05; }
+    .hero__logo :global(.logo__sub) { display: none; }
+    .hero__logo :global(.logo__mark) { width: 30px; height: 30px; }
+    .hero__phone { width: 44px; height: 44px; padding: 0; justify-content: center; }
+    .hero__phone span { display: none; }
+    .hero__content { justify-items: start; text-align: left; }
+    .hero__word { margin-inline: 0 0.18em; }
+    .hero__cta { flex-direction: column; align-items: flex-start; }
+    .hide-sm { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__word { animation: none; }
+  }
+</style>
+
+<script>
+  const frame = document.querySelector<HTMLElement>('[data-beacon]');
+  const src = frame?.querySelector<HTMLElement>('[data-beacon-src]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (frame && src) {
+    let a = 180, ta = 180, lastMove = -1e9, raf = 0, visible = true;
+    const t0 = performance.now();
+    // точка, откуда идёт свет: центр подложки логотипа
+    const origin = () => {
+      const f = frame.getBoundingClientRect();
+      const s = src.getBoundingClientRect();
+      const x = s.left + s.width / 2 - f.left, y = s.top + s.height / 2 - f.top;
+      frame.style.setProperty('--bx', `${x}px`);
+      frame.style.setProperty('--by', `${y}px`);
+      return { x: f.left + x, y: f.top + y };
+    };
+    origin();
+    addEventListener('resize', origin);
+
+    const loop = (now: number) => {
+      // без мыши луч медленно качается под логотипом
+      if (now - lastMove > 2000) ta = 180 + Math.sin((now - t0) / 1800) * 55;
+      const d = ((ta - a + 540) % 360) - 180;
+      a += d * (now - lastMove > 2000 ? 0.03 : 0.14);
+      frame.style.setProperty('--a', `${a.toFixed(2)}deg`);
+      raf = visible && !reduce ? requestAnimationFrame(loop) : 0;
+    };
+
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      frame.addEventListener('pointermove', (e) => {
+        const o = origin();
+        // 0° — вверх, по часовой; луч смотрит на курсор
+        ta = (Math.atan2(e.clientY - o.y, e.clientX - o.x) * 180) / Math.PI + 90;
+        lastMove = performance.now();
+      });
+    }
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(loop);
+    }).observe(frame);
+  }
+</script>

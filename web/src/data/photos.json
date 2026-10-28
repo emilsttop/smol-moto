@@ -1,0 +1,132 @@
+{
+  "hero": {
+    "w": 1920,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1920
+    ],
+    "alt": "Райдер на электроэндуро пролетает лужу на лесной дороге под Смоленском",
+    "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAABQBQCdASogABIAPrVInEunJCKht+gA4BaJYgCxHxGwtG39VmufiDttza3ySF1tfBXmrAAA/vLG+/C7znK1GAnNCrnQ56yrpuy3BeG2KUrkzfCqHVMyg/ZUP13CE5FUhA8l98TpUfkhzWBNUmCJ2LqbBhixTzL5lQAAAA=="
+  },
+  "field": {
+    "w": 1620,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1620
+    ],
+    "alt": "Райдер на электромотоцикле в летнем поле",
+    "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAADwBACdASogABUAPslWnkunpSKhsAwA8BkJZADCgBjRXm9ssUCR2VN6rK4lWUxkOQAA/vO/rjGL1dqEGVplPAg+QLXy4t4pJ8KdE5lZh0boDGBp3DYIyjGnQixdAfcgNesWQ8Os2AvQrzec1/lwcbBHPY0WeZHv1PVySJnTtCjX0GlFcAA="
+  },
+  "pair": {
+    "w": 2560,
+    "h": 1928,
+    "widths": [
+      640,
+      1080,
+      1600,
+      2400
+    ],
+    "alt": "Два электроэндуро в траве после квеста",
+    "lqip": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4IKAAAABwBgCdASogABgAPsFGn0uno6Kht/qoAPAYCWQAuyDYgvts0owrRJ/9RFi+Tbf3b7iNkRW2yRXTaZIhIAAA/sV3xaTb1w81CQs6S3a8X9OQmHcdLttCyfJYszwOEfzxCH65DJH5DaP/H9zUYBi3N+hCzdIWwQcnZcx4JXH1eBfg8R3uzHwIO1FhJXrlf2+pH1+AMONUZm8c0Qk3F7A5O8AA"
+  },
+  "bike-dusk": {
+    "w": 4454,
+    "h": 4454,
+    "widths": [
+      640,
+      1080,
+      1600,
+      2400
+    ],
+    "alt": "Электроэндуро с включённой фарой в осеннем поле на закате",
+    "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQBACdASogACAAPtFWo0uoJKMhsAgBABoJZQCdACHgArg4/XTj27vc3dYAAP7LJ+6mIOjcxSEFYFOJncmjYOgkYmsFmDumwVDpM1oGGo0tTyJFWFTDGwYrlVgAAA=="
+  },
+  "bike-lit": {
+    "w": 4454,
+    "h": 4454,
+    "widths": [
+      640,
+      1080,
+      1600,
+      2400
+    ],
+    "alt": "",
+    "lqip": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAACQBQCdASogACAAPs1Wo0unpKMhsBgMAPAZiUAWnQId/jY8yCRiPMbXmMVtnMeaNZW7WYv2AAD+9glOYRWPX7WHwn1Y63WAtbnr0iMuHcc8TZ51BG9oUTTITdnaXJ30WWhZDsyx4WA6cHPUazpXftDMwaXTc2DB+pCj2MW42iEVt2plSOhvtkA91W208LeqkcNKaG7Rm3Yyxsz7CPZAAA=="
+  },
+  "rest": {
+    "w": 2560,
+    "h": 1917,
+    "widths": [
+      640,
+      1080,
+      1600,
+      2400
+    ],
+    "alt": "Девушка отдыхает у электроэндуро в летнем поле после поездки",
+    "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAACwBACdASogABgAPslUn0unpKKhsAwA8BkJQAAKRCcxonCnlWc6hO0uxT3AmxAAAP2YAfqWhKUa/YIicZWDZZkcacEw4dH8+IpDAuFHkl6F8DT67uJb5RIt3bVuq13rDZPQRIuWT4QuH/dozJFtl2uhG6O8FXbWWAZQAA=="
+  },
+  "wx-summer": {
+    "w": 1920,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1920
+    ],
+    "alt": "Вид с руля электроэндуро на летнюю грунтовку между полей",
+    "lqip": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAABQBQCdASogABIAPtFUpU2oJCOiMBgIAQAaCWYAuyCpwYFnlWGH+mWej8Pd7BZnIexq40AA/u1PBzQLK/ispu0/OlEAwm5yc/Ebu2BkmmKelxl1KyHAE9055kX06IUnpCurTLHttjrukUK2jw4k9Yh+KLb6FsuNfjXVS/I8UOEnti3xbzYwlpm16RcyI1A/JGvs3wAA"
+  },
+  "wx-autumn": {
+    "w": 1920,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1920
+    ],
+    "alt": "",
+    "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAACQBQCdASogABIAPtFao02oJSMiKA1RABoJZACxHzLn7kkAi8wxXD40S8q9MyIRnvUxg24AAAD+rvoQUgh8OpVHnxg1hEc9s9i3OWSWCMGvp8NRylpH0HviReMB3TbzXGMlIpzS8AnbJzlPJ0kUcPZPcY32vW7dI1qvLkVgg/VqVi6d0gR9gkG0wAA="
+  },
+  "wx-winter": {
+    "w": 1920,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1920
+    ],
+    "alt": "",
+    "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAADQBACdASogABIAPtFYpEwoJSOiMAgBABoJZwAAW6gEdLEoCThyDQR+cJUf+e6sAAD+8dP3cibv9xQejWgbt5eAH81SQB3RH8lOqcX/on4jwjN6bzfuCnKKF3Y7Uz3hUyR4M2fZI68duNqfs0y/AWc6SINXAAAA"
+  },
+  "wx-spring": {
+    "w": 1920,
+    "h": 1080,
+    "widths": [
+      640,
+      1080,
+      1600,
+      1920
+    ],
+    "alt": "",
+    "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAAAwBQCdASogABIAPtFcp04oJSOiKAqpABoJZgCsMoMzGCUKKgTbf3UK2Y69n8Niyf4g4AD+78oicXRWo6an2SRorItXPueiO5uqB1JzqVAu2iiAYo2tq+XF+CNFRvtTEBaMstycy3KSbeLLlbH9Vi4uR0M5BpS1/D77s7dfHmYlf1O1e/5t82ERhUUPnc6mGZsVbpnAAAA="
+  },
+  "hug": {
+    "w": 1080,
+    "h": 1350,
+    "widths": [
+      640,
+      1080
+    ],
+    "alt": "Гость обнимает мотоцикл на фоне заката",
+    "lqip": "data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAABQBgCdASogACgAPs1SpkunpKOhsBqqqPAZiWQArDO+Qfxx2fRP7Et7u7MrCWrywUMepnQNjnygxaAzAAD90gQypMH4ab2hKoHsUO9sk+ii7ybu7RmBfn+6LfqxVPmzAwutRqxif+/e4/eaDBYmHNYf0dGLrdlq5V4jZ/01+S0I0FPF2thQvWusWx3FbDAy9rJSLcW2L8Is85bzvOVgyO8qd6dcuvUM9MsAAA=="
+  }
+}

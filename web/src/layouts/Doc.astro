@@ -1,0 +1,26 @@
+---
+import Base from './Base.astro';
+import Logo from '../components/Logo.astro';
+import Footer from '../components/Footer.astro';
+interface Props { title: string; description: string; updated: string }
+const { title, description, updated } = Astro.props;
+---
+<Base title={`${title} · Прокат электромотоциклов Смоленск`} description={description}>
+  <header class="doc-head wrap"><a href="/" aria-label="На главную"><Logo size={32} /></a></header>
+  <main class="doc wrap">
+    <h1>{title}</h1>
+    <p class="label doc__upd">Редакция от {updated}</p>
+    <div class="doc__body"><slot /></div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .doc-head { padding-top: 28px; padding-bottom: 28px; }
+  .doc-head a { text-decoration: none; }
+  .doc { padding-top: 60px; padding-bottom: 120px; max-width: 860px; margin-left: clamp(16px, 14vw, 260px); }
+  .doc h1 { font-size: clamp(44px, 6vw, 84px); }
+  .doc__upd { color: var(--ink-soft); margin: 24px 0 56px; }
+  .doc__body :global(h2) { font-size: 30px; margin: 44px 0 14px; }
+  .doc__body :global(p), .doc__body :global(li) { color: var(--ink-soft); margin-bottom: 10px; }
+</style>

@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Night from '../components/Night.astro';
+import Formats from '../components/Formats.astro';
+import ForWhom from '../components/ForWhom.astro';
+import Weather from '../components/Weather.astro';
+import Route from '../components/Route.astro';
+import Reviews from '../components/Reviews.astro';
+import Contact from '../components/Contact.astro';
+import Faq from '../components/Faq.astro';
+import Footer from '../components/Footer.astro';
+import MobileBar from '../components/MobileBar.astro';
+import { site } from '../config';
+import { faq } from '../data/faq';
+
+const url = Astro.site!.toString();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'LocalBusiness',
+      '@id': `${url}#business`,
+      name: `${site.name} ${site.city}`,
+      description: 'Прокат электроэндуро с инструктором и эндуро-квест для двоих в Смоленске. Права и опыт не нужны.',
+      telephone: site.phone,
+      url,
+      image: new URL('/img/hero-1600.webp', url).toString(),
+      address: { '@type': 'PostalAddress', addressLocality: 'Смоленск', addressCountry: 'RU' },
+      areaServed: 'Смоленск',
+      openingHoursSpecification: { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], opens: '00:00', closes: '23:59' },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    },
+  ],
+};
+---
+<Base
+  title="Прокат электромотоциклов в Смоленске с инструктором, без прав"
+  description="Электроэндуро с инструктором в Смоленске: научим за 10–15 минут, права не нужны. Прогулки по лесу и берегу реки, эндуро-квест для двоих, подарочные сертификаты. Экипировка и фото бесплатно."
+  loader
+  jsonLd={jsonLd}
+>
+  <Hero />
+  <main>
+    <Night />
+    <Formats />
+    <Route />
+    <ForWhom />
+    <Reviews />
+    <Weather />
+    <Contact />
+    <Faq />
+  </main>
+  <Footer />
+  <MobileBar />
+</Base>

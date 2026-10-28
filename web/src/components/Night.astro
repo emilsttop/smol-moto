@@ -1,0 +1,225 @@
+---
+// Блок «Фара»: мотоцикл в сумерках на фоне всей секции. Фара включается, когда блок
+// появляется на экране, и светит вправо через всю страницу. Курсор поворачивает луч.
+import Pic from './Pic.astro';
+---
+<section class="night" data-night aria-labelledby="night-title">
+  <div class="night__photo" data-night-photo>
+    <Pic id="bike-dusk" sizes="(max-width: 860px) 100vw, 64vw" class="night__dark" />
+    <div class="night__lit" aria-hidden="true">
+      <Pic id="bike-lit" sizes="(max-width: 860px) 100vw, 64vw" alt="" />
+    </div>
+  </div>
+  <div class="night__beam" aria-hidden="true"></div>
+  <span class="night__lamp" aria-hidden="true"></span>
+
+  <div class="wrap night__in">
+    <div class="night__text">
+      <h2 id="night-title">Страшно? Именно поэтому рядом инструктор</h2>
+      <p class="night__lede">
+        Начинаем в вашем темпе: сначала площадка, потом лесная дорога. Инструктор едет рядом
+        на своём мотоцикле и подсказывает по ходу.
+      </p>
+      <dl class="night__facts">
+        <div><dt>10–15 минут</dt><dd>обучение с нуля. Хватает, чтобы уверенно тронуться и затормозить</dd></div>
+        <div><dt>Без сцепления</dt><dd>и без передач. Газ и тормоза, как на велосипеде</dd></div>
+        <div><dt>Маршрут под вас</dt><dd>Новичку ровные лесные дороги. Тому, кто уже катается, подъёмы, корни и лужи. Инструктор меняет трассу по ходу: не страшно и не скучно</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .night {
+    --a: 100deg;
+    --spread: 0deg;
+    --reach: 0%;
+    --lx: 30%;
+    --ly: 30%;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: min(110svh, 1100px);
+    display: grid;
+    align-items: center;
+    background: var(--night);
+    color: var(--cream);
+    margin-top: clamp(70px, 9vw, 130px);
+  }
+
+  .night__photo {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 64%;
+    z-index: -3;
+    -webkit-mask: linear-gradient(to right, #000 62%, transparent 99%);
+            mask: linear-gradient(to right, #000 62%, transparent 99%);
+  }
+  .night__photo :global(.pic) { position: absolute !important; inset: 0; aspect-ratio: auto !important; }
+  .night__photo :global(img) { object-position: 50% 40%; }
+
+  /* освещённая версия кадра видна только внутри конуса */
+  .night__lit {
+    position: absolute;
+    inset: 0;
+    -webkit-mask: var(--cone), var(--falloff);
+    -webkit-mask-composite: source-in;
+            mask: var(--cone), var(--falloff);
+            mask-composite: intersect;
+  }
+
+  /* тот же конус, но тёплым светом поверх всей секции: им фара освещает текст справа */
+  .night__beam {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at var(--lx) var(--ly), rgb(255 226 170 / 0.55), rgb(255 190 90 / 0.28) 18%, rgb(255 170 60 / 0.12) 48%, transparent 85%);
+    mix-blend-mode: screen;
+    -webkit-mask: var(--cone);
+            mask: var(--cone);
+  }
+
+  .night {
+    --cone: conic-gradient(from calc(var(--a) - var(--spread) - 9deg) at var(--lx) var(--ly),
+      transparent 0deg, #000 9deg, #000 calc(var(--spread) * 2 + 9deg), transparent calc(var(--spread) * 2 + 18deg));
+    --falloff: radial-gradient(circle at var(--lx) var(--ly), #000 calc(var(--reach) * 0.4), transparent var(--reach));
+  }
+
+  .night__lamp {
+    position: absolute;
+    left: var(--lx);
+    top: var(--ly);
+    width: 140px;
+    height: 140px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 246 220), rgb(255 200 110 / 0.55) 30%, transparent);
+    mix-blend-mode: screen;
+    opacity: var(--glow, 0);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .night__in { width: 100%; }
+  .night__text {
+    margin-left: auto;
+    width: min(100%, 560px);
+    padding: clamp(80px, 10vw, 140px) 0;
+  }
+  .night h2 { font-size: clamp(44px, 5.2vw, 82px); margin-bottom: 32px; }
+  .night__lede { font-size: clamp(18px, 1.4vw, 21px); color: rgb(244 240 226 / 0.86); max-width: 38ch; }
+  .night__facts { margin: 52px 0 0; }
+  .night__facts div {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 20px;
+    padding: 17px 0;
+    border-top: 1px solid rgb(244 240 226 / 0.2);
+  }
+  .night__facts dt { font: 500 13px/1.5 var(--f-label); color: var(--accent); }
+  .night__facts dd { margin: 0; color: rgb(244 240 226 / 0.8); font-size: 15.5px; }
+
+  @media (max-width: 860px) {
+    .night { align-items: end; min-height: 0; }
+    .night__photo { width: 100%; height: 62%; inset: 0 0 auto 0; -webkit-mask: linear-gradient(#000 60%, transparent); mask: linear-gradient(#000 60%, transparent); }
+    .night__text { padding: 58vh 0 64px; }
+    .night__facts div { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>
+
+<script>
+  const el = document.querySelector<HTMLElement>('[data-night]');
+  const box = el?.querySelector<HTMLElement>('[data-night-photo]');
+  const img = box?.querySelector<HTMLImageElement>('img');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // фара на кадре (после отзеркаливания), доли от ширины и высоты исходника
+  const LAMP = { x: 0.53, y: 0.224 };
+  const POS = { x: 0.5, y: 0.4 }; // object-position
+
+  if (el && box && img) {
+    const DEFAULT_A = 100;
+    const cur = { a: DEFAULT_A, s: 0, r: 0, g: 0 };
+    const tgt = { a: DEFAULT_A, s: 0, r: 0, g: 0 };
+    let raf = 0;
+
+    // где фара оказалась на экране при object-fit: cover
+    const placeLamp = () => {
+      const s = el.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      const iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
+      const k = Math.max(b.width / iw, b.height / ih);
+      const x = b.left - s.left + (b.width - iw * k) * POS.x + LAMP.x * iw * k;
+      const y = b.top - s.top + (b.height - ih * k) * POS.y + LAMP.y * ih * k;
+      el.style.setProperty('--lx', `${x}px`);
+      el.style.setProperty('--ly', `${y}px`);
+      return { x: s.left + x, y: s.top + y };
+    };
+
+    const apply = () => {
+      el.style.setProperty('--a', `${cur.a}deg`);
+      el.style.setProperty('--spread', `${cur.s}deg`);
+      el.style.setProperty('--reach', `${cur.r}%`);
+      el.style.setProperty('--glow', String(cur.g));
+    };
+    const loop = () => {
+      const d = ((tgt.a - cur.a + 540) % 360) - 180;
+      cur.a += d * 0.12;
+      cur.s += (tgt.s - cur.s) * 0.12;
+      cur.r += (tgt.r - cur.r) * 0.1;
+      cur.g += (tgt.g - cur.g) * 0.2;
+      apply();
+      const busy = Math.abs(d) > 0.1 || Math.abs(tgt.s - cur.s) > 0.05 || Math.abs(tgt.r - cur.r) > 0.1 || Math.abs(tgt.g - cur.g) > 0.01;
+      raf = busy ? requestAnimationFrame(loop) : 0;
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+    const on = () => Object.assign(tgt, { s: 22, r: 150, g: 1 });
+
+    const ready = () => placeLamp();
+    if (img.complete) ready(); else img.addEventListener('load', ready, { once: true });
+    addEventListener('resize', ready);
+
+    if (reduce) {
+      placeLamp();
+      Object.assign(cur, { s: 22, r: 150, g: 1 });
+      apply();
+    } else {
+      // зажигание: фара пару раз моргает и загорается, один раз за визит
+      let lit = false;
+      const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+      new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting || lit) return;
+        lit = true;
+        placeLamp();
+        const blink = [[0, 0.5], [90, 0], [220, 0.8], [300, 0.1], [460, 1]] as const;
+        blink.forEach(([t, v]) => setTimeout(() => {
+          cur.g = v;
+          cur.s = v * 22;
+          cur.r = v * 150;
+          apply();
+          if (v === 1) {
+            on();
+            // на компьютере после зажигания фара горит, только пока курсор над блоком
+            if (fine && !el.matches(':hover')) Object.assign(tgt, { s: 0, r: 0, g: 0 });
+            kick();
+          }
+        }, t));
+      }, { threshold: 0.35 }).observe(el);
+
+      if (fine) {
+        el.addEventListener('pointermove', (e) => {
+          if (!lit) return;
+          const lamp = placeLamp();
+          const ang = (Math.atan2(e.clientY - lamp.y, e.clientX - lamp.x) * 180) / Math.PI + 90;
+          // луч смотрит вперёд: от «чуть вверх» до «вниз под колесо»
+          tgt.a = Math.max(40, Math.min(165, ang));
+          kick();
+        });
+        // курсор ушёл из блока: фара гаснет; вернулся: снова загорается
+        el.addEventListener('pointerleave', () => { Object.assign(tgt, { a: DEFAULT_A, s: 0, r: 0, g: 0 }); kick(); });
+        el.addEventListener('pointerenter', () => { if (lit) { on(); kick(); } });
+      }
+    }
+  }
+</script>

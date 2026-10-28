@@ -1,0 +1,324 @@
+---
+// «Плохой погоды не бывает»: один и тот же вид с руля в четырёх сезонах.
+// Выбор сектора на круге раскрывает новый фон расширяющимся кругом из этого сектора.
+import photos from '../data/photos.json';
+
+const seasons = [
+  { id: 'spring', name: 'Весна', temp: '+5°, грязь', title: 'Грязь до шлема и смех до слёз', text: 'Колесо буксует, вы хохочете, инструктор помогает выбраться. Отмоетесь за вечер, а эту историю будете рассказывать весь год.' },
+  { id: 'summer', name: 'Лето', temp: '+25°, сухо', title: 'Тёплый ветер и дорога до горизонта', text: 'Пыль из-под колеса, запах травы и поле до самого леса. А потом сидите рядом с мотоциклом и смотрите, как солнце садится после девяти вечера.' },
+  { id: 'autumn', name: 'Осень', temp: '+8°, дождь', title: 'Брызги выше головы', text: 'Лужи по колено, жёлтые листья летят из-под колеса. Видео, где вы пролетаете через воду, захочется показать всем.' },
+  { id: 'winter', name: 'Зима', temp: '−10°, снег', title: 'Первый след на снегу', text: 'Тихие белые поля, фара режет сумерки, и вы прокладываете колею, по которой до вас никто не ехал. Такую зиму ни с чем не спутать.' },
+];
+const START = 'summer';
+const img = (id: string) => {
+  const p = (photos as Record<string, { widths: number[] }>)[`wx-${id}`];
+  return {
+    avif: p.widths.map((w) => `/img/wx-${id}-${w}.avif ${w}w`).join(', '),
+    webp: p.widths.map((w) => `/img/wx-${id}-${w}.webp ${w}w`).join(', '),
+    src: `/img/wx-${id}-${p.widths[1]}.webp`,
+  };
+};
+
+// ровное кольцо из четырёх четвертей: 0° — вверх, по часовой
+const C = 200, R = 180, r = 70;
+const pt = (a: number, rad: number) => {
+  const t = ((a - 90) * Math.PI) / 180;
+  return `${(C + rad * Math.cos(t)).toFixed(3)} ${(C + rad * Math.sin(t)).toFixed(3)}`;
+};
+const sector = (i: number) => {
+  const a0 = i * 90, a1 = a0 + 90;
+  return `M${pt(a0, r)} L${pt(a0, R)} A${R} ${R} 0 0 1 ${pt(a1, R)} L${pt(a1, r)} A${r} ${r} 0 0 0 ${pt(a0, r)}Z`;
+};
+const label = (i: number) => pt(i * 90 + 45, (R + r) / 2).split(' ').map(Number);
+---
+<section class="wx" data-wx data-season={START} aria-labelledby="wx-title">
+  <div class="wx__bgs" aria-hidden="true">
+    {seasons.map((s) => {
+      const p = img(s.id);
+      return (
+        <picture class:list={['wx__bg', { 'is-on': s.id === START }]} data-bg={s.id}>
+          <source type="image/avif" srcset={p.avif} sizes="100vw" />
+          <img src={p.src} srcset={p.webp} sizes="100vw" alt="" loading="lazy" decoding="async" />
+        </picture>
+      );
+    })}
+    <div class="wx__rays"></div>
+    <canvas class="wx__fx" data-fx></canvas>
+  </div>
+
+  <div class="wrap wx__in">
+    <div class="wx__text">
+      <h2 id="wx-title">Плохой погоды для эндуро не бывает</h2>
+      <div class="wx__stories" aria-live="polite">
+        {seasons.map((s) => (
+          <article class="wx__story" data-story={s.id} hidden={s.id !== START}>
+            <p class="wx__temp">{s.name}, {s.temp}</p>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </article>
+        ))}
+      </div>
+      <a class="btn btn--cream wx__cta" href="#call">Подобрать время</a>
+    </div>
+
+    <div class="wx__wheel">
+      <svg viewBox="0 0 400 400" role="group" aria-label="Выберите сезон">
+        <circle cx={C} cy={C} r={R} class="wx__disc" />
+        {seasons.map((s, i) => {
+          const [lx, ly] = label(i);
+          return (
+            <g class="wx__sec" data-sec={s.id} tabindex="0" role="button" aria-label={s.name} aria-pressed={s.id === START ? 'true' : 'false'}>
+              <path d={sector(i)} />
+              <text x={lx} y={ly} text-anchor="middle" dominant-baseline="central">{s.name}</text>
+            </g>
+          );
+        })}
+        <line x1={C} y1={C - R} x2={C} y2={C - r} class="wx__div" />
+        <line x1={C} y1={C + r} x2={C} y2={C + R} class="wx__div" />
+        <line x1={C - R} y1={C} x2={C - r} y2={C} class="wx__div" />
+        <line x1={C + r} y1={C} x2={C + R} y2={C} class="wx__div" />
+        <circle cx={C} cy={C} r={R} class="wx__ring" />
+        <circle cx={C} cy={C} r={r} class="wx__ring wx__hub" />
+      </svg>
+      <p class="wx__hint">Наведите на сезон</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .wx {
+    --ox: 75%;
+    --oy: 50%;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: min(100svh, 980px);
+    display: grid;
+    align-items: center;
+    color: var(--cream);
+    background: var(--night);
+    padding: clamp(80px, 9vw, 120px) 0;
+  }
+
+  .wx__bgs { position: absolute; inset: 0; z-index: -1; }
+  .wx__bg { position: absolute; inset: 0; clip-path: circle(0% at var(--ox) var(--oy)); }
+  .wx__bg img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+  .wx__bg.is-on { clip-path: circle(150% at var(--ox) var(--oy)); z-index: 1; }
+  .wx__bg.is-entering { z-index: 2; transition: clip-path 1.2s cubic-bezier(0.65, 0, 0.35, 1); }
+  .wx__bg.is-entering img { animation: wx-settle 1.6s var(--ease-out); }
+  @keyframes wx-settle { from { transform: scale(1.08); } }
+  /* затемнение слева под текстом */
+  .wx__bgs::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background:
+      linear-gradient(90deg, rgb(6 12 8 / 0.82) 0%, rgb(6 12 8 / 0.55) 38%, rgb(6 12 8 / 0.15) 65%, rgb(6 12 8 / 0.25) 100%),
+      linear-gradient(to bottom, rgb(6 12 8 / 0.35), transparent 30%, transparent 70%, rgb(6 12 8 / 0.5));
+  }
+  /* снег зимой и листопад осенью рисуются на одном холсте */
+  .wx__fx { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.8s; }
+  .wx[data-season='winter'] .wx__fx, .wx[data-season='autumn'] .wx__fx { opacity: 1; }
+
+  /* летом: объёмные лучи солнца из правого верхнего угла */
+  @property --ray { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  .wx__rays {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s;
+    mix-blend-mode: screen;
+    background:
+      radial-gradient(circle at 84% -6%, rgb(255 246 214 / 0.75), rgb(255 226 160 / 0.25) 14%, transparent 34%),
+      repeating-conic-gradient(from calc(190deg + var(--ray)) at 84% -6%,
+        rgb(255 238 196 / 0) 0deg, rgb(255 238 196 / 0.26) 2.5deg, rgb(255 238 196 / 0) 5deg,
+        rgb(255 238 196 / 0) 9deg, rgb(255 238 196 / 0.14) 10.5deg, rgb(255 238 196 / 0) 13deg, rgb(255 238 196 / 0) 17deg);
+    -webkit-mask: radial-gradient(circle at 84% -6%, #000 10%, rgb(0 0 0 / 0.6) 45%, transparent 85%);
+            mask: radial-gradient(circle at 84% -6%, #000 10%, rgb(0 0 0 / 0.6) 45%, transparent 85%);
+    animation: rays 14s ease-in-out infinite alternate, rays-flicker 5s ease-in-out infinite alternate;
+  }
+  .wx[data-season='summer'] .wx__rays { opacity: 1; }
+  @keyframes rays { from { --ray: -4deg; } to { --ray: 6deg; } }
+  @keyframes rays-flicker { from { filter: brightness(0.85); } to { filter: brightness(1.15); } }
+
+  .wx__in {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(40px, 6vw, 100px);
+    align-items: center;
+  }
+  .wx__text h2 { max-width: 13ch; margin-bottom: clamp(30px, 4vw, 54px); }
+  .wx__stories { display: grid; min-height: 230px; }
+  .wx__story { grid-area: 1 / 1; }
+  .wx__story:not([hidden]) { animation: story-in 0.7s var(--ease-out); }
+  @keyframes story-in { from { opacity: 0; transform: translateY(14px); } }
+  .wx__temp { font: 500 13px/1 var(--f-label); color: var(--accent); margin-bottom: 16px; }
+  .wx__story h3 { font-size: clamp(32px, 3.2vw, 48px); margin-bottom: 16px; }
+  .wx__story p:last-child { font-size: clamp(17px, 1.3vw, 19px); max-width: 42ch; color: rgb(244 240 226 / 0.88); }
+  .wx__cta { margin-top: 30px; }
+
+  .wx__wheel { justify-self: center; width: min(100%, 440px); display: grid; justify-items: center; gap: 14px; }
+  .wx__wheel svg { width: 100%; height: auto; display: block; }
+  .wx__disc { fill: rgb(6 12 8 / 0.66); }
+  .wx__sec { cursor: pointer; outline: none; }
+  .wx__sec path { fill: transparent; transition: fill 0.45s; }
+  .wx__sec text { fill: var(--cream); font: 400 30px var(--f-display); pointer-events: none; transition: fill 0.45s; }
+  .wx__sec:hover path { fill: rgb(244 240 226 / 0.14); }
+  .wx__sec[aria-pressed='true'] path { fill: var(--cream); }
+  .wx__sec[aria-pressed='true'] text { fill: var(--night); }
+  .wx__sec:focus-visible path { fill: rgb(255 178 63 / 0.35); }
+  .wx__div, .wx__ring { fill: none; stroke: rgb(244 240 226 / 0.6); stroke-width: 1.5; pointer-events: none; }
+  .wx__ring.wx__hub { fill: rgb(6 12 8 / 0.85); }
+  .wx__hint { font-size: 13px; color: rgb(244 240 226 / 0.7); }
+
+  @media (max-width: 860px) {
+    .wx { align-items: end; }
+    .wx__in { grid-template-columns: 1fr; }
+    .wx__wheel { width: min(100%, 320px); order: -1; }
+    .wx__hint { display: none; }
+    .wx__bgs::after { background: linear-gradient(to bottom, rgb(6 12 8 / 0.3), rgb(6 12 8 / 0.55) 45%, rgb(6 12 8 / 0.9)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wx__bg.is-entering { transition: none; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-wx]');
+  if (root) {
+    const secs = [...root.querySelectorAll<SVGGElement>('[data-sec]')];
+    const stories = [...root.querySelectorAll<HTMLElement>('[data-story]')];
+    const bgs = [...root.querySelectorAll<HTMLElement>('[data-bg]')];
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let touched = false;
+    let switches = 0;
+
+    const pick = (id: string, from: Element) => {
+      if (root.dataset.season === id) return;
+      // точка, откуда раскрывается новый сезон: центр выбранного сектора
+      const r = root.getBoundingClientRect();
+      const b = from.getBoundingClientRect();
+      root.style.setProperty('--ox', `${b.left + b.width / 2 - r.left}px`);
+      root.style.setProperty('--oy', `${b.top + b.height / 2 - r.top}px`);
+
+      root.dataset.season = id;
+      secs.forEach((s) => s.setAttribute('aria-pressed', String(s.dataset.sec === id)));
+      stories.forEach((s) => { s.hidden = s.dataset.story !== id; });
+
+      const next = bgs.find((b) => b.dataset.bg === id)!;
+      // старые фоны остаются под новым, пока он раскрывается, чтобы никогда не было пустого кадра
+      bgs.forEach((b) => { if (b !== next) b.classList.remove('is-entering'); });
+      next.classList.remove('is-entering');
+      next.style.clipPath = 'circle(0% at var(--ox) var(--oy))';
+      void next.offsetWidth;
+      next.style.clipPath = '';
+      next.classList.add('is-entering', 'is-on');
+      const gen = ++switches;
+      const done = () => {
+        // если за это время выбрали другой сезон, уборкой займётся следующее переключение
+        if (gen !== switches) return;
+        bgs.forEach((b) => {
+          if (b.dataset.bg === root.dataset.season) b.classList.remove('is-entering');
+          else b.classList.remove('is-on');
+        });
+      };
+      if (reduce) done();
+      else setTimeout(done, 1250);
+    };
+
+    secs.forEach((s) => {
+      const go = () => { touched = true; pick(s.dataset.sec!, s); };
+      s.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') go(); });
+      s.addEventListener('click', go);
+      s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+
+    // фоны всех сезонов подгружаем заранее, когда блок близко
+    new IntersectionObserver(([e], io) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      bgs.forEach((b) => { b.querySelector('img')!.loading = 'eager'; });
+    }, { rootMargin: '600px' }).observe(root);
+
+    // пока круг не трогали, сезоны сменяются сами
+    const order = ['summer', 'autumn', 'winter', 'spring'];
+    let timer = 0;
+    if (!reduce) {
+      new IntersectionObserver(([e]) => {
+        clearInterval(timer);
+        if (!e.isIntersecting) return;
+        timer = window.setInterval(() => {
+          if (touched) return clearInterval(timer);
+          const id = order[(order.indexOf(root.dataset.season!) + 1) % order.length];
+          pick(id, root.querySelector(`[data-sec=${id}]`)!);
+        }, 4200);
+      }, { threshold: 0.5 }).observe(root);
+    }
+
+    // частицы: снег зимой, падающие листья осенью
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-fx]')!;
+    const ctx = canvas.getContext('2d')!;
+    const LEAF = ['#e08a2c', '#c9561f', '#f1b23c', '#a8401a', '#d9a03a'];
+    const snow = Array.from({ length: 160 }, () => ({
+      x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 2.2, v: 0.0007 + Math.random() * 0.0016, d: Math.random() * 6,
+    }));
+    const leaves = Array.from({ length: 34 }, () => ({
+      x: Math.random(), y: Math.random(), s: 7 + Math.random() * 9, v: 0.0009 + Math.random() * 0.0012,
+      d: Math.random() * 6, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.06, c: LEAF[Math.floor(Math.random() * LEAF.length)],
+    }));
+    const leaf = (x: number, y: number, size: number, rot: number, flip: number, color: string) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.scale(1, flip);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.quadraticCurveTo(size * 0.75, -size * 0.2, 0, size);
+      ctx.quadraticCurveTo(-size * 0.75, -size * 0.2, 0, -size);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(80,30,10,0.45)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.9);
+      ctx.lineTo(0, size * 1.15);
+      ctx.stroke();
+      ctx.restore();
+    };
+    let raf = 0;
+    const draw = (t: number) => {
+      const season = root.dataset.season;
+      const w = (canvas.width = canvas.clientWidth), h = (canvas.height = canvas.clientHeight);
+      if (season === 'winter') {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const f of snow) {
+          f.y += f.v;
+          if (f.y > 1.02) { f.y = -0.02; f.x = Math.random(); }
+          ctx.beginPath();
+          ctx.arc((f.x + Math.sin(t / 1600 + f.d) * 0.01) * w, f.y * h, f.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (season === 'autumn') {
+        for (const l of leaves) {
+          l.y += l.v;
+          l.rot += l.vr;
+          if (l.y > 1.05) { l.y = -0.05; l.x = Math.random(); }
+          const sway = Math.sin(t / 900 + l.d) * 0.03;
+          // переворот листа: сплющиваем по вертикали, как будто он кувыркается
+          leaf((l.x + sway) * w, l.y * h, l.s, l.rot + sway * 6, Math.cos(t / 700 + l.d), l.c);
+        }
+      }
+      raf = season === 'winter' || season === 'autumn' ? requestAnimationFrame(draw) : 0;
+    };
+    if (!reduce) {
+      new MutationObserver(() => {
+        const s = root.dataset.season;
+        if ((s === 'winter' || s === 'autumn') && !raf) raf = requestAnimationFrame(draw);
+      }).observe(root, { attributes: true, attributeFilter: ['data-season'] });
+    }
+  }
+</script>

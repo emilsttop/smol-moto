@@ -1,0 +1,44 @@
+---
+// Запись только по телефону: сайт не собирает персональные данные.
+import Icon from './Icon.astro';
+import { site } from '../config';
+---
+<section class="call" id="call" aria-labelledby="call-title">
+  <div class="wrap call__in">
+    <div class="call__intro">
+      <h2 id="call-title">Подберём время по телефону</h2>
+      <p class="lede">
+        Слотов на день немного, поэтому лучше позвонить заранее. Расскажем стоимость под ваш формат
+        и предложим ближайшие свободные окна. Звонок ни к чему не обязывает.
+      </p>
+    </div>
+    <div class="call__box">
+      <a class="call__number" href={`tel:${site.phone}`}>{site.phoneDisplay}</a>
+      <a class="btn call__btn" href={`tel:${site.phone}`}><Icon name="phone" size={18} />Позвонить</a>
+      <p class="call__note">Прогулка, квест или подарочный сертификат: всё обсудим в одном звонке.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .call { background: var(--paper-2); padding: clamp(80px, 10vw, 150px) 0; }
+  .call__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(40px, 8vw, 140px); align-items: end; }
+  .call__intro h2 { margin-bottom: 30px; max-width: 12ch; }
+  .call__box { display: grid; justify-items: start; gap: 26px; }
+  .call__number {
+    font: 400 clamp(46px, 6.4vw, 104px)/0.95 var(--f-display);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat;
+    transition: background-size 0.45s var(--ease-out);
+  }
+  .call__number:hover { background-size: 100% 1.5px; }
+  .call__btn { padding: 20px 34px 19px; }
+  .call__note { font-size: 15px; color: var(--ink-soft); max-width: 40ch; }
+  @media (max-width: 860px) {
+    .call__in { grid-template-columns: 1fr; }
+    .call__number { font-size: clamp(38px, 11vw, 60px); }
+  }
+</style>

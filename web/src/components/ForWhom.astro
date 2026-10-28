@@ -1,0 +1,45 @@
+---
+const rows = [
+  { t: 'Одному', d: 'Час, когда никто не дёргает: лес, мотоцикл и инструктор, который подстроится под ваш темп. Компания не нужна, чтобы получить свою порцию адреналина.' },
+  { t: 'Паре', d: 'Вместо обычного свидания в кафе. Вдвоём на двух мотоциклах, разговоров потом на неделю.' },
+  { t: 'Родителю с ребёнком', d: 'Приключение, которое ребёнок будет пересказывать в школе. Детская экипировка есть.' },
+  { t: 'Друзьям', d: 'Вместо привычных выходных. Посоревноваться на квесте или просто прокатиться по лесу.' },
+  { t: 'В подарок', d: 'Тому, кого сложно удивить. Сертификат бессрочный, дату получатель выберет сам.' },
+];
+---
+<section class="who wrap" aria-labelledby="who-title">
+  <h2 id="who-title" class="who__title">Кому<br />подойдёт</h2>
+  <ol class="who__list">
+    {rows.map((r) => (
+      <li>
+        <h3>{r.t}</h3>
+        <p>{r.d}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .who {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: 40px;
+    padding-bottom: clamp(100px, 13vw, 200px);
+  }
+  .who__title { position: sticky; top: 40px; align-self: start; }
+  .who__list { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--rule); }
+  .who__list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 24px;
+    align-items: baseline;
+    padding: 30px 0 34px;
+    border-top: 1px solid var(--rule);
+  }
+  .who__list p { color: var(--ink-soft); font-size: 16px; }
+  @media (max-width: 860px) {
+    .who { grid-template-columns: 1fr; }
+    .who__title { position: static; }
+    .who__list li { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>

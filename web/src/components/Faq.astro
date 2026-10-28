@@ -1,0 +1,78 @@
+---
+import Pic from './Pic.astro';
+import { faq } from '../data/faq';
+---
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <div class="faq__bg" aria-hidden="true">
+    <Pic id="rest" sizes="100vw" alt="" />
+  </div>
+  <div class="wrap faq__in">
+    <h2 id="faq-title">Что обычно спрашивают перед первой поездкой</h2>
+    <div class="faq__list">
+      {faq.map((f) => (
+        <details>
+          <summary><span>{f.q}</span><i aria-hidden="true"></i></summary>
+          <p>{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    position: relative;
+    isolation: isolate;
+    background: var(--night);
+    color: var(--cream);
+    padding: clamp(100px, 12vw, 180px) 0;
+  }
+  .faq__bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+  /* кадр занимает левые две трети, чтобы лицо не уходило под список */
+  .faq__bg :global(.pic) { position: absolute !important; inset: 0 34% 0 0; aspect-ratio: auto !important; }
+  .faq__bg :global(img) { object-position: 45% 40%; }
+  /* девушка слева остаётся видна, справа под списком кадр уходит в ночной зелёный */
+  .faq__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(11 20 14 / 0.45) 0%, rgb(11 20 14 / 0.1) 22%, rgb(11 20 14 / 0.15) 40%, rgb(11 20 14 / 0.85) 58%, var(--night) 66%),
+      linear-gradient(to bottom, rgb(11 20 14 / 0.5), transparent 25%, transparent 75%, rgb(11 20 14 / 0.6));
+  }
+
+  /* весь текст справа, левая часть отдана фото */
+  .faq__in {
+    display: grid;
+    gap: 40px;
+    width: min(100%, 640px);
+    margin-left: max(var(--gutter), 52%);
+    margin-right: var(--gutter);
+    padding: 0;
+  }
+  .faq h2 { font-size: clamp(38px, 3.8vw, 60px); max-width: 16ch; }
+  .faq__list { border-bottom: 1px solid rgb(244 240 226 / 0.25); }
+  details { border-top: 1px solid rgb(244 240 226 / 0.25); }
+  summary {
+    list-style: none;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    padding: 22px 0;
+    font: 400 clamp(22px, 2vw, 28px)/1.15 var(--f-display);
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary i { position: relative; width: 14px; height: 14px; flex: none; }
+  summary i::before, summary i::after { content: ''; position: absolute; inset: 6.5px 0 auto; height: 1.5px; background: var(--accent); transition: transform 0.3s var(--ease-out); }
+  summary i::after { transform: rotate(90deg); }
+  details[open] summary i::after { transform: rotate(0deg); }
+  summary:hover span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  details p { padding: 0 0 24px; max-width: 56ch; color: rgb(244 240 226 / 0.82); }
+
+  @media (max-width: 860px) {
+    .faq { padding-top: 62vw; }
+    .faq__in { margin-left: var(--gutter); width: auto; }
+    .faq__bg :global(.pic) { inset: 0 0 auto 0; height: 80vw; }
+    .faq__bg :global(img) { object-position: 50% 30%; }
+    .faq__bg::after { background: linear-gradient(to bottom, transparent 20%, rgb(11 20 14 / 0.75) 60vw, var(--night) 80vw); }
+  }
+</style>

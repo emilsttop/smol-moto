@@ -1,0 +1,34 @@
+---
+import Logo from './Logo.astro';
+import { site } from '../config';
+const year = new Date().getFullYear();
+---
+<footer class="foot wrap">
+  <Logo size={30} />
+  <a class="foot__phone" href={`tel:${site.phone}`}>{site.phoneDisplay}</a>
+  <p class="foot__legal">© {year}</p>
+  <nav class="foot__docs" aria-label="Документы">
+    <a href="/privacy">Политика конфиденциальности</a>
+    <a href="/terms">Пользовательское соглашение</a>
+  </nav>
+</footer>
+
+<style>
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px 36px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .foot :global(.logo) { color: var(--ink); }
+  .foot__phone { font: 400 26px/1 var(--f-display); color: var(--ink); text-decoration: none; }
+  .foot__docs { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .foot__docs a:hover { color: var(--ink); }
+  @media (max-width: 860px) { .foot { padding-bottom: 110px; } }
+</style>

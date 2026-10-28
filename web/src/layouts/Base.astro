@@ -1,0 +1,44 @@
+---
+import '../styles/global.css';
+import Loader from '../components/Loader.astro';
+import { site } from '../config';
+
+interface Props { title: string; description: string; loader?: boolean; jsonLd?: object }
+const { title, description, loader = false, jsonLd } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#e2e1d2" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL('/img/hero-1600.webp', Astro.site)} />
+    <meta property="og:site_name" content={`${site.name} ${site.city}`} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <noscript><style>.pic img{opacity:1!important;filter:none!important;transform:none!important}</style></noscript>
+  </head>
+  <body>
+    {loader && <Loader />}
+    <slot />
+    <script>
+      // Проявление картинок после загрузки (стили в global.css → .pic)
+      const reveal = (img: HTMLImageElement) => {
+        const box = img.closest('[data-pic]');
+        if (!box) return;
+        const done = () => box.classList.add('is-loaded');
+        if (img.complete && img.naturalWidth) done();
+        else img.addEventListener('load', done, { once: true });
+      };
+      document.querySelectorAll<HTMLImageElement>('[data-pic] img').forEach(reveal);
+    </script>
+  </body>
+</html>

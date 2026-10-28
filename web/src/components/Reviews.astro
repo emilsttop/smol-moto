@@ -1,5 +1,5 @@
 ---
-// Три вертикальных видеоотзыва рядом, под каждым имя гостя.
+// Видеоотзывы веером телефонов, как сторис: средний прямо и крупнее, боковые развёрнуты.
 // Пока в config.ts нет видео, стоят заглушки с подписью «Имя гостя».
 import { videoReviews } from '../config';
 
@@ -7,19 +7,23 @@ const STUBS = ['hero', 'rest', 'pair'];
 const slides = (videoReviews.length ? videoReviews : STUBS.map((id) => ({ src: '', poster: `/img/${id}-640.webp`, name: '' }))).slice(0, 3);
 ---
 <section class="rev" id="reviews" aria-labelledby="rev-title">
-  <div class="wrap">
+  <span class="rev__ghost" aria-hidden="true">Гости</span>
+  <div class="wrap rev__in">
     <h2 id="rev-title">Гости о поездке</h2>
-    <ul class="rev__grid">
-      {slides.map((s) => (
-        <li>
-          {s.src ? (
-            <video src={s.src} poster={s.poster} controls preload="none" playsinline></video>
-          ) : (
-            <div class="rev__stub" style={`--bg:url(${s.poster})`}>
-              <span class="rev__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l10-6.5z" fill="currentColor" /></svg></span>
-              <span class="rev__soon">Видео скоро</span>
-            </div>
-          )}
+    <ul class="rev__fan">
+      {slides.map((s, i) => (
+        <li class="rev__item" style={`--i:${i - 1};--a:${Math.abs(i - 1)}`}>
+          <div class="rev__phone">
+            <span class="rev__notch" aria-hidden="true"></span>
+            {s.src ? (
+              <video class="rev__screen" src={s.src} poster={s.poster} controls preload="none" playsinline></video>
+            ) : (
+              <div class="rev__screen rev__stub" style={`--bg:url(${s.poster})`}>
+                <span class="rev__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l10-6.5z" fill="currentColor" /></svg></span>
+                <span class="rev__soon">Видео скоро</span>
+              </div>
+            )}
+          </div>
           <p class="rev__name">{s.name || 'Имя гостя'}</p>
         </li>
       ))}
@@ -28,18 +32,81 @@ const slides = (videoReviews.length ? videoReviews : STUBS.map((id) => ({ src: '
 </section>
 
 <style>
-  .rev { background: var(--forest); color: var(--cream); padding: clamp(56px, 7vw, 96px) 0; }
-  .rev h2 { margin-bottom: clamp(24px, 3vw, 40px); }
-  .rev__grid {
+  .rev {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    color: var(--cream);
+    padding: clamp(56px, 7vw, 90px) 0 clamp(48px, 6vw, 80px);
+    background:
+      radial-gradient(60% 70% at 50% 55%, #1f4a30, transparent 70%),
+      var(--forest);
+  }
+  /* огромная контурная надпись позади телефонов */
+  .rev__ghost {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    translate: -50% -50%;
+    z-index: -1;
+    font: 800 clamp(120px, 24vw, 380px)/0.8 var(--f-label);
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(244 240 226 / 0.1);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+  .rev__in { display: grid; justify-items: center; }
+  .rev h2 { text-align: center; margin-bottom: clamp(28px, 3.5vw, 48px); }
+
+  .rev__fan {
+    --h: min(50vh, 470px);
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(3, min(30vh, 280px));
-    justify-content: start;
-    gap: clamp(14px, 2vw, 28px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   }
-  .rev__grid video, .rev__stub { width: 100%; aspect-ratio: 9 / 16; border-radius: 4px; object-fit: cover; background: var(--night); }
+  .rev__item {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    margin-inline: calc(var(--h) * -0.04);
+    /* веер: боковые развёрнуты и чуть ниже, средний прямо и крупнее */
+    transform:
+      translateY(calc(var(--a) * 26px))
+      rotate(calc(var(--i) * 7deg))
+      scale(calc(1 - var(--a) * 0.1));
+    z-index: calc(2 - var(--a));
+    transition: transform 0.6s var(--ease-out);
+  }
+  .rev__item:hover, .rev__item:focus-within { transform: translateY(-10px) rotate(0) scale(1.03); z-index: 5; }
+
+  .rev__phone {
+    position: relative;
+    height: var(--h);
+    aspect-ratio: 9 / 18.5;
+    padding: 9px;
+    border-radius: 34px;
+    background: #0a0e0b;
+    outline: 1px solid rgb(244 240 226 / 0.16);
+    outline-offset: -1px;
+  }
+  .rev__notch {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    translate: -50% 0;
+    width: 30%;
+    height: 18px;
+    border-radius: 999px;
+    background: #0a0e0b;
+    z-index: 2;
+  }
+  .rev__screen { display: block; width: 100%; height: 100%; border-radius: 26px; object-fit: cover; background: var(--night); }
   .rev__stub {
     position: relative;
     display: grid;
@@ -47,18 +114,20 @@ const slides = (videoReviews.length ? videoReviews : STUBS.map((id) => ({ src: '
     background: var(--bg) center / cover;
     overflow: hidden;
   }
-  .rev__stub::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgb(11 20 14 / 0.75), rgb(11 20 14 / 0.2) 55%); }
+  .rev__stub::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgb(11 20 14 / 0.75), rgb(11 20 14 / 0.15) 55%); }
   .rev__play {
     position: relative; z-index: 1;
-    width: 64px; height: 64px; display: grid; place-items: center;
+    width: 62px; height: 62px; display: grid; place-items: center;
     border-radius: 50%; background: var(--accent); color: var(--night);
   }
-  .rev__soon { position: absolute; z-index: 1; left: 16px; bottom: 14px; font-size: 13px; opacity: 0.8; }
-  .rev__name { margin-top: 10px; font: 400 clamp(20px, 1.8vw, 26px)/1.1 var(--f-display); }
+  .rev__soon { position: absolute; z-index: 1; left: 0; right: 0; bottom: 18px; text-align: center; font-size: 13px; opacity: 0.85; }
+  .rev__name { margin-top: 14px; font: 400 clamp(20px, 1.8vw, 26px)/1.1 var(--f-display); text-align: center; }
 
   @media (max-width: 860px) {
-    /* на телефоне три видео не помещаются: листаются пальцем */
-    .rev__grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); scrollbar-width: none; }
-    .rev__grid li { flex: 0 0 68%; scroll-snap-align: start; }
+    /* на телефоне веер не помещается: ровный ряд, листается пальцем */
+    .rev__fan { --h: 62vh; width: 100%; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; padding-bottom: 8px; scrollbar-width: none; }
+    .rev__item { transform: none; margin: 0; scroll-snap-align: center; }
+    .rev__item:hover { transform: none; }
   }
+  @media (prefers-reduced-motion: reduce) { .rev__item { transition: none; } }
 </style>

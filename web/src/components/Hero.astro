@@ -1,6 +1,6 @@
 ---
 // Первый экран. Курсор «едет» по фото как колесо эндуро: за ним остаётся след протектора,
-// который заносит на резких поворотах и плавно тает. Без мыши след рисует сам по петле.
+// который заносит на резких поворотах и плавно тает.
 import Pic from './Pic.astro';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
@@ -19,8 +19,9 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         <li><a href="#reviews">Отзывы</a></li>
         <li><a href="#faq">Вопросы</a></li>
       </ul>
-      <a href="/" class="hero__logo" aria-label="Прокат электромотоциклов, Смоленск. На главную">
+      <a href="/" class="hero__logo" aria-label="Прокат электромотоциклов, Смоленск. На главную" data-dust>
         <Logo size={36} />
+        <canvas class="hero__dust" aria-hidden="true" data-dust-canvas></canvas>
       </a>
       <div class="hero__right">
         <a class="hero__phone" href={`tel:${site.phone}`} aria-label={`Позвонить ${site.phoneDisplay}`}><Icon name="phone" size={16} /><span>{site.phoneDisplay}</span></a>
@@ -92,6 +93,10 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
     border: 1px solid rgb(244 240 226 / 0.18);
   }
   .hero__logo :global(.logo__mark) { display: none; }
+  .hero__logo { position: relative; }
+  /* название из частиц: canvas шире плашки, чтобы частицы могли разлетаться за её край */
+  .hero__dust { position: absolute; left: -60px; top: -40px; width: calc(100% + 120px); height: calc(100% + 80px); pointer-events: none; }
+  .hero__logo.is-dust :global(.logo__name) { color: transparent; }
   .hero__logo :global(.logo__text) { justify-items: center; text-align: center; }
   .hero__right { display: flex; justify-content: flex-end; align-items: center; gap: 26px; }
   .hero__phone {
@@ -156,6 +161,110 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
 </style>
 
 <script>
+  // Название на плашке из частиц: при загрузке частицы слетаются в буквы,
+  // при наведении разбегаются от курсора и собираются обратно.
+  {
+    const plate = document.querySelector<HTMLElement>('[data-dust]');
+    const cv = plate?.querySelector<HTMLCanvasElement>('[data-dust-canvas]');
+    const nameEl = plate?.querySelector<HTMLElement>('.logo__name');
+    if (plate && cv && nameEl && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const ctx = cv.getContext('2d')!;
+      type P = { x: number; y: number; vx: number; vy: number; hx: number; hy: number; a: number };
+      let parts: P[] = [];
+      let raf = 0, mx = -1e4, my = -1e4, dpr = 1;
+
+      const build = () => {
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        const cb = cv.getBoundingClientRect();
+        cv.width = Math.round(cb.width * dpr); cv.height = Math.round(cb.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // рисуем название тем же шрифтом во внеэкранный canvas и берём точки из закрашенных пикселей
+        const nb = nameEl.getBoundingClientRect();
+        const cs = getComputedStyle(nameEl);
+        const fs = parseFloat(cs.fontSize);
+        const off = document.createElement('canvas');
+        const S = 3; // пикселей на CSS-пиксель при выборке, для чёткости
+        off.width = Math.ceil(nb.width * S); off.height = Math.ceil(nb.height * S);
+        const o = off.getContext('2d')!;
+        o.scale(S, S);
+        o.font = `${cs.fontStyle} ${cs.fontWeight} ${fs}px ${cs.fontFamily}`;
+        o.fillStyle = '#fff';
+        o.textBaseline = 'alphabetic';
+        // перенос строк такой же, как у DOM-текста: по словам, в ширину элемента
+        const words = (nameEl.textContent || '').trim().split(/\s+/);
+        const lines: string[] = [];
+        let cur = '';
+        for (const w of words) {
+          const t = cur ? `${cur} ${w}` : w;
+          // переносим, только если DOM-текст тоже переносится (на телефоне), иначе одна строка
+          if (cs.whiteSpace !== 'nowrap' && o.measureText(t).width > nb.width + 1 && cur) { lines.push(cur); cur = w; } else cur = t;
+        }
+        lines.push(cur);
+        const lh = nb.height / lines.length;
+        const align = cs.textAlign;
+        lines.forEach((ln, i) => {
+          const wdt = o.measureText(ln).width;
+          const x = align === 'center' || lines.length === 1 ? (nb.width - wdt) / 2 : 0;
+          o.fillText(ln, x, i * lh + lh * 0.78);
+        });
+        const img = o.getImageData(0, 0, off.width, off.height).data;
+        const step = 1.15; // CSS px между частицами
+        const ox = nb.left - cb.left, oy = nb.top - cb.top;
+        const old = parts;
+        parts = [];
+        for (let y = 0; y < nb.height; y += step) {
+          for (let x = 0; x < nb.width; x += step) {
+            const k = (Math.floor(y * S) * off.width + Math.floor(x * S)) * 4 + 3;
+            if (img[k] > 120) {
+              const prev = old[parts.length];
+              parts.push({
+                hx: ox + x, hy: oy + y,
+                // стартуем из случайной точки вокруг плашки, как облако пыли
+                x: prev ? prev.x : ox + nb.width / 2 + (Math.random() - 0.5) * cb.width * 1.4,
+                y: prev ? prev.y : oy + nb.height / 2 + (Math.random() - 0.5) * cb.height * 1.6,
+                vx: 0, vy: 0, a: 0.75 + Math.random() * 0.25,
+              });
+            }
+          }
+        }
+        plate.classList.add('is-dust');
+        kick();
+      };
+
+      const tick = () => {
+        const w = cv.width / dpr, h = cv.height / dpr;
+        ctx.clearRect(0, 0, w, h);
+        let moving = false;
+        for (const p of parts) {
+          // пружина к своей точке в букве
+          p.vx += (p.hx - p.x) * 0.06;
+          p.vy += (p.hy - p.y) * 0.06;
+          // отталкивание от курсора
+          const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
+          if (d2 < 900) { const f = (900 - d2) / 900 * 2.2; const d = Math.sqrt(d2) || 1; p.vx += dx / d * f; p.vy += dy / d * f; }
+          p.vx *= 0.8; p.vy *= 0.8;
+          p.x += p.vx; p.y += p.vy;
+          if (Math.abs(p.vx) + Math.abs(p.vy) > 0.02 || Math.abs(p.hx - p.x) + Math.abs(p.hy - p.y) > 0.3) moving = true;
+          ctx.fillStyle = `rgba(244, 240, 226, ${p.a})`;
+          ctx.fillRect(p.x, p.y, 1.25, 1.25);
+        }
+        raf = moving ? requestAnimationFrame(tick) : 0;
+      };
+      const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+
+      plate.addEventListener('pointermove', (e) => {
+        const b = cv.getBoundingClientRect();
+        mx = e.clientX - b.left; my = e.clientY - b.top;
+        kick();
+      });
+      plate.addEventListener('pointerleave', () => { mx = my = -1e4; kick(); });
+      // ждём шрифты, иначе буквы соберутся системным шрифтом; стартуем после заставки
+      document.fonts.ready.then(() => setTimeout(build, 500));
+      let rt = 0;
+      addEventListener('resize', () => { clearTimeout(rt); rt = window.setTimeout(build, 200); });
+    }
+  }
+
   const frame = document.querySelector<HTMLElement>('[data-tread]');
   const canvas = frame?.querySelector<HTMLCanvasElement>('[data-tread-canvas]');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -171,8 +280,6 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
     const clods: Clod[] = [];
     let last: { x: number; y: number; a: number } | null = null;
     let lastMove = -1e9, raf = 0, visible = true, dpr = 1, w = 0, h = 0, n = 0;
-    const t0 = performance.now();
-
     const size = () => {
       dpr = Math.min(devicePixelRatio || 1, 2);
       const b = frame.getBoundingClientRect();
@@ -212,11 +319,6 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
     };
 
     const draw = (now: number) => {
-      // без мыши колесо само едет по плавной петле в нижней части кадра
-      if (now - lastMove > 2500) {
-        const t = (now - t0) / 1000;
-        drive(w * (0.5 + Math.sin(t * 0.55) * 0.36), h * (0.62 + Math.sin(t * 1.1) * 0.12), now);
-      }
       ctx.clearRect(0, 0, w, h);
       while (marks.length && now - marks[0].t > LIFE) marks.shift();
       for (const m of marks) {
@@ -239,7 +341,8 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - age / 900)})`;
         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
       }
-      raf = visible ? requestAnimationFrame(draw) : 0;
+      // рисуем, только пока на экране есть след или летят комья; новое движение мыши запустит цикл снова
+      raf = visible && (marks.length || clods.length) ? requestAnimationFrame(draw) : 0;
     };
 
     if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -248,6 +351,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         if (now() - lastMove > 2500) last = null; // после автопилота начинаем новую колею от курсора
         lastMove = now();
         drive(e.clientX - b.left, e.clientY - b.top, lastMove);
+        if (visible && !raf) raf = requestAnimationFrame(draw);
       });
     }
     function now() { return performance.now(); }

@@ -1,24 +1,23 @@
 ---
-import Logo from './Logo.astro';
 import { site } from '../config';
 const year = new Date().getFullYear();
 ---
 <footer class="foot wrap">
-  <Logo size={22} withText={false} />
-  <a class="foot__phone" href={`tel:${site.phone}`}>{site.phoneDisplay}</a>
-  <p class="foot__legal">© {year}</p>
-  <nav class="foot__docs" aria-label="Документы">
+  <p class="foot__name">Прокат электромотоциклов в Смоленске</p>
+  <div class="foot__mid">
+    <span>© {year}</span>
     <a href="/privacy">Политика конфиденциальности</a>
     <a href="/terms">Пользовательское соглашение</a>
-  </nav>
+  </div>
+  <a class="foot__phone" href={`tel:${site.phone}`}>{site.phoneDisplay}</a>
 </footer>
 
 <style>
+  /* три колонки: название слева, документы по центру, телефон справа */
   .foot {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: 8px 28px;
     padding-top: 14px;
     padding-bottom: 14px;
@@ -26,10 +25,14 @@ const year = new Date().getFullYear();
     font-size: 13px;
     color: var(--ink-soft);
   }
-  .foot :global(.logo) { color: var(--ink); }
-  .foot__phone { font: 400 20px/1 var(--f-display); color: var(--ink); text-decoration: none; }
-  .foot__docs { display: flex; flex-wrap: wrap; gap: 10px 22px; }
-  .foot__docs a:hover { color: var(--ink); }
-  /* на телефоне снизу место под панель звонка */
-  @media (max-width: 860px) { .foot { padding-bottom: 80px; } }
+  .foot__name { font: 400 18px/1 var(--f-display); color: var(--ink); }
+  .foot__mid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; }
+  .foot__mid a:hover { color: var(--ink); }
+  .foot__phone { justify-self: end; font: 400 20px/1 var(--f-display); color: var(--ink); text-decoration: none; }
+  /* на телефоне всё в столбик, снизу место под панель звонка */
+  @media (max-width: 860px) {
+    .foot { grid-template-columns: 1fr; justify-items: start; padding-bottom: 80px; }
+    .foot__mid { justify-content: flex-start; }
+    .foot__phone { justify-self: start; }
+  }
 </style>

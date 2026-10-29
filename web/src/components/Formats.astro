@@ -79,7 +79,7 @@ const START = 'quest';
             <div class="plate" aria-hidden="true" data-tilt>
               <span class="plate__top"><Icon name="gift" size={16} /> Подарочный сертификат</span>
               <span class="plate__name">Эндуро электромотоциклы</span>
-              <span class="plate__meta"><span>Смоленск</span><span>Действует 6 месяцев</span></span>
+              <span class="plate__meta"><span>Смоленск</span><span class="plate__valid">Действует 6 месяцев</span></span>
               <span class="plate__glare"></span>
             </div>
           )}
@@ -234,6 +234,7 @@ const START = 'quest';
   .plate__top { display: flex; align-items: center; gap: 8px; font: 500 10px/1 var(--f-label); }
   .plate__name { align-self: center; font: 500 clamp(20px, 2vw, 28px)/1 var(--f-display); }
   .plate__meta { display: flex; justify-content: space-between; font: 500 10px/1 var(--f-label); opacity: 0.8; }
+  @media (max-width: 860px) { .plate__valid { display: none; } }
   .plate.is-tilting { transition: transform 0.08s linear; }
   /* блик: яркое пятно и радужная полоса, которые бегут по пластине вслед за наклоном */
   .plate__glare {

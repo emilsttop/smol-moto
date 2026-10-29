@@ -10,6 +10,16 @@ const year = new Date().getFullYear();
     <a href="/terms">Пользовательское соглашение</a>
   </div>
   <a class="foot__phone" href={`tel:${site.phone}`}>{site.phoneDisplay}</a>
+  <!-- на телефоне всё, кроме номера, спрятано в меню-бургер -->
+  <details class="foot__menu">
+    <summary aria-label="Документы и информация о сайте"><span></span><span></span><span></span></summary>
+    <div class="foot__panel">
+      <p class="foot__panel-name">Прокат электромотоциклов в Смоленске</p>
+      <a href="/privacy">Политика конфиденциальности</a>
+      <a href="/terms">Пользовательское соглашение</a>
+      <span>© {year}</span>
+    </div>
+  </details>
 </footer>
 
 <style>
@@ -29,10 +39,32 @@ const year = new Date().getFullYear();
   .foot__mid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; }
   .foot__mid a:hover { color: var(--ink); }
   .foot__phone { justify-self: end; font: 400 20px/1 var(--f-display); color: var(--ink); text-decoration: none; }
-  /* на телефоне всё в столбик, снизу место под панель звонка */
+  .foot__menu { display: none; }
+
+  /* на телефоне одна строка: номер слева, бургер справа; снизу место под панель звонка */
   @media (max-width: 860px) {
-    .foot { grid-template-columns: 1fr; justify-items: start; padding-bottom: 80px; }
-    .foot__mid { justify-content: flex-start; }
-    .foot__phone { justify-self: start; }
+    .foot { grid-template-columns: 1fr auto; position: relative; padding-bottom: 80px; }
+    .foot__name, .foot__mid { display: none; }
+    .foot__phone { justify-self: start; font-size: 22px; }
+    .foot__menu { display: block; }
+    .foot__menu summary {
+      list-style: none; cursor: pointer;
+      width: 44px; height: 44px; border: 1px solid var(--rule); border-radius: 50%;
+      display: grid; place-content: center; gap: 4px;
+    }
+    .foot__menu summary::-webkit-details-marker { display: none; }
+    .foot__menu summary span { display: block; width: 16px; height: 1.5px; background: var(--ink); transition: transform 0.25s, opacity 0.2s; }
+    .foot__menu[open] summary span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+    .foot__menu[open] summary span:nth-child(2) { opacity: 0; }
+    .foot__menu[open] summary span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+    .foot__panel {
+      position: absolute; right: var(--gutter, 16px); bottom: calc(100% - 4px); z-index: 5;
+      display: grid; gap: 14px; min-width: 250px;
+      padding: 18px 20px; border-radius: 14px;
+      background: var(--ink); color: var(--cream);
+    }
+    .foot__panel a { color: var(--cream); }
+    .foot__panel span { opacity: 0.6; }
+    .foot__panel-name { font: 400 19px/1.1 var(--f-display); }
   }
 </style>

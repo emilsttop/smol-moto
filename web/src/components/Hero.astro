@@ -30,6 +30,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
 
     <div class="hero__content">
       <h1 class="hero__title">
+        <span class="sr-only">Прокат электромотоциклов в Смоленске. </span>
         {words.map((w, i) => (
           <>
             <span class="hero__word" style={`--i:${i}`}>{w}</span>
@@ -85,13 +86,20 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
   .hero__links a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
 
   /* название на тёмной плашке, без значка */
+  /* плашка выделена: плотный тёмный фон с размытием фото под ним и янтарная рамка, как свет фары */
   .hero__logo {
     text-decoration: none;
-    padding: 14px 26px 13px;
+    padding: 14px 28px 13px;
     border-radius: 18px;
-    background: rgb(6 14 9 / 0.72);
-    border: 1px solid rgb(244 240 226 / 0.18);
+    background: rgb(8 18 12 / 0.86);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgb(255 178 63 / 0.6);
+    transition: border-color 0.25s;
   }
+  .hero__logo:hover { border-color: var(--accent); }
+  .hero__logo :global(.logo__name) { font-size: 23px; font-weight: 600; letter-spacing: 0; }
+  .hero__logo :global(.logo__sub) { font-size: 9px; color: var(--accent); opacity: 1; }
   .hero__logo :global(.logo__mark) { display: none; }
   .hero__logo { position: relative; }
   /* название «из пыли»: canvas шире плашки, чтобы пыль клубилась за её краем */
@@ -142,11 +150,12 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
 
   @media (max-width: 860px) {
     .hero__links { display: none; }
-    .hero__nav { grid-template-columns: 1fr auto; gap: 12px; padding: 16px; }
-    .hero__logo { padding: 10px 14px; border-radius: 14px; }
-    .hero__logo :global(.logo__text) { justify-items: start; text-align: left; }
-    .hero__logo :global(.logo__name) { font-size: 15px; white-space: normal; max-width: 9.5em; line-height: 1.05; }
-    .hero__logo :global(.logo__sub) { display: none; }
+    /* та же плашка, что на компьютере: по центру, с подписью; телефон справа */
+    .hero__nav { grid-template-columns: 44px 1fr 44px; gap: 8px; padding: 14px; }
+    .hero__logo { grid-column: 2; justify-self: center; padding: 10px 14px 9px; border-radius: 14px; }
+    .hero__logo :global(.logo__name) { font-size: 17px; }
+    .hero__logo :global(.logo__sub) { font-size: 7.5px; letter-spacing: 0.16em; }
+    .hero__right { grid-column: 3; }
     .hero__phone { width: 44px; height: 44px; padding: 0; justify-content: center; }
     .hero__phone span { display: none; }
     .hero__content { justify-items: start; text-align: left; }
@@ -224,7 +233,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
           o.fillText(ln, x, i * lh + lh * 0.78);
         });
         text = off;
-        plate.classList.add('is-dust');
+        if (!done) plate.classList.add('is-dust');
         kick();
       };
 
@@ -250,6 +259,8 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
             }
           } else {
             done = true;
+            // дальше показываем обычный текст страницы: он чётче нарисованного на canvas
+            plate.classList.remove('is-dust');
             // на финише колесо тормозит: клубок пыли у конца надписи
             for (let i = 0; i < 14; i++) {
               puff(ox + tw - Math.random() * 10, oy + th * (0.3 + Math.random() * 0.8),
@@ -272,8 +283,7 @@ const words = ['Сядете', 'и поедете', 'через', '10 мину
         ctx.globalAlpha = 1;
 
         if (text) {
-          if (done) ctx.drawImage(text, ox, oy, tw, th);
-          else {
+          if (!done) {
             // буквы проявляются с мягким краем у фронта
             wctx.clearRect(0, 0, w, h);
             wctx.drawImage(text, ox, oy, tw, th);

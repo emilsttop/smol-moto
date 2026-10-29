@@ -1,13 +1,11 @@
 ---
 // Загрузчик первого визита: «орб» из точек на вращающейся сфере (по мотивам libraries.dev/orbs)
 // и подписи-состояния. Без JS сам гаснет через 4 с за счёт CSS-анимации.
-import Logo from './Logo.astro';
 ---
 <div class="loader" data-loader aria-hidden="true">
   <div class="loader__inner">
     <canvas class="loader__orb" width="160" height="160"></canvas>
     <p class="loader__state label" data-loader-state>Заряжаем мотоциклы</p>
-    <Logo size={28} class="loader__logo" />
   </div>
 </div>
 
@@ -27,10 +25,9 @@ import Logo from './Logo.astro';
     transition: opacity 0.7s var(--ease-out), visibility 0s 0.7s;
   }
   .loader__inner { display: grid; justify-items: center; gap: 18px; }
-  .loader__orb { width: 80px; height: 80px; }
-  .loader__state { color: var(--ink-soft); min-height: 1em; }
+  .loader__orb { width: 112px; height: 112px; }
+  .loader__state { color: var(--ink); min-height: 1.2em; font-size: clamp(15px, 2.2vw, 19px); letter-spacing: 0.1em; }
   .loader__state::after { content: '…'; }
-  :global(.loader__logo) { margin-top: 28px; opacity: 0.85; }
   @keyframes loader-fallback { to { opacity: 0; visibility: hidden; } }
 </style>
 
